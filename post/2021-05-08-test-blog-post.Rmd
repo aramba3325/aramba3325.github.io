@@ -1,25 +1,73 @@
 ---
-title: test blog post ayyy skeet
+title: Trees, as described by R and python
 author: ''
-date: '2021-05-08'
-slug: test-blog-post
+date: '2021-05-09'
+slug: Trees
 categories: []
-tags: []
+tags: [Trees, R, Python]
 description: ''
 ---
 
-## Whole lotta gang shit ya heard
+#### I said I liked conservation on the home page, so I decided to make this about a part of nature I really like...
+![](/post/2021-05-08-test-blog-post_files/Tree2.jpeg)
 
-skeet yah bitches, skeet yah
+# TREES!!!
 
-
-
-
-
+(I mean, come on, just look at that, how could you not like it?)
 
 
 
+Anyways, I'm a big fan of trees, because I've learned all about how tree roots form complex, symbiotic relationships with mycorrhizal fungi... 
+
+and how *really* tall trees like redwoods push the tensile strength of their water column to its absolute limit but somehow avoid embolism... 
+
+and how trees are vitally important to types of sustainable coffee farming (which is personally quite important, as I **love** coffee)... 
+
+and how the mechanism of water transport in trees is oddly comparable to sucking a milkshake through a straw (weird way to think about it, but it's true)...
+
+and yet still, when I see a really cool tree, the first thought in my head is always:
 
 
 
-fuck shit ayy
+```{r}
+#a little bit of R
+library(reticulate)
+tree<-"WOW,"
+```
+and then...
+```{python}
+#a little bit of python
+tree="IT'S A TREE"
+```
+and finally, all together...
+```{python}
+#a little bit of both
+print(r.tree,tree) 
+```
+
+# Wow, it's a tree indeed...
+
+#### It's the simple things.
+
+I suppose trees are kind of similar to coding languages. They're complex, constantly developing and growing, and I like them a lot better when I don't have to think too much about them :)
+
+### So that was trees as described by R and python... and now... MORE TREES!
+
+![](/post/2021-05-08-test-blog-post_files/tree3.png) 
+
+Look at those roots! WOW!
+
+![](/post/2021-05-08-test-blog-post_files/tree4.png)
+
+I don't even know what's happening with this one, but wow.
+
+![](/post/2021-05-08-test-blog-post_files/pando.jpg)
+
+This one is actually all one organism (FREAKING WOWWWWWWWW!!)
+
+### Okay, that is all :)
+
+
+
+
+
