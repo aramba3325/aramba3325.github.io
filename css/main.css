@@ -1,10 +1,10 @@
 /* Main page with stikky-footer */
 html, body {
   height: 100%;
-  background-color: #101721;
-  font-family: "Lucida Console", "Courier New", monospace;
+  background-color: #DADED4;
+  font-family: Arial, Helvetica, sans-serif;
   /* The html and body elements cannot have any padding or margin. */
-  border-top: 2px solid #101721;
+  border-top: 10px solid #ffffff;
 }
 
 /* Wrapper for page content to push down footer */
@@ -23,23 +23,23 @@ html, body {
   margin-bottom: 10px;
 }
 .navbar-default {
-  background-color: #b9b9bd;
-  border-color: #444cc7;
+  background-color: #DADED4;
+  border-color: #3C403D;
 }
 .navbar-default .navbar-brand {
-  color: #444cc7;
+  color: #3C403D;
 }
 .navbar-default .navbar-brand:hover, .navbar-default .navbar-brand:focus {
-  color: #999999;
+  color: #A3BCB6;
 }
 .navbar-default .navbar-text {
   color: #ff0000;
 }
 .navbar-default .navbar-nav > li > a {
-  color: #999999;
+  color: #3C403D;
 }
 .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
-  color: #999999;
+  color: #A3BCB6;
 }
 .navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
   color: #999999;
@@ -50,17 +50,17 @@ html, body {
   background-color: #ffffff;
 }
 .navbar-default .navbar-toggle {
-  border-color: #444cc7;
+  border-color: #3C403D;
 }
 .navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
-  background-color: #ffffff;
+  background-color: #A3BCB6;
 }
 .navbar-default .navbar-toggle .icon-bar {
-  background-color: #444cc7;
+  background-color: #3C403D;
 }
 .navbar-default .navbar-collapse,
 .navbar-default .navbar-form {
-  border-color: #999999;
+  border-color: #3C403D;
 }
 .navbar-default .navbar-link {
   color: #999999;
@@ -91,10 +91,10 @@ html, body {
   margin: 20px 0;
 }
 .container a {
-  color: #b9b9bd;
+  color: #556b52;
 }
 .container a:hover {
-  color: #444cc7;
+  color: #A3BCB6;
 }
 .container p img, .img-responsive {
   display: block;
@@ -145,13 +145,13 @@ html, body {
 }
 .social-links li a {
   font-size: 20px;
-  color: #b9b9bd;
+  color: #3C403D;
   padding: 10px;
   padding-bottom: 4px;
   transition: all .4s ease;
 }
 .social-links li a:hover {
-  color: #000;
+  color: #A3BCB6;
 }
 .avatar {
   padding-top: 5%;
@@ -186,10 +186,10 @@ html, body {
   text-decoration: none !important;
 }
 .text-muted {
-	color: #999999;
+	color: #292A27;
 }
 div.footer{
-  border-bottom: 5px solid #f8971f;;
+  border-bottom: 20px solid #ffffff;;
 }
 /* Set the fixed height of the footer here */
 /*.footer {
