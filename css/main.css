@@ -1,10 +1,10 @@
 /* Main page with stikky-footer */
 html, body {
-  height: 100%;
-  background-color: #DADED4;
+  height: 120%;
+  background-image: linear-gradient(to bottom right, #889e83, #9ba2ba);
   font-family: Arial, Helvetica, sans-serif;
   /* The html and body elements cannot have any padding or margin. */
-  border-top: 10px solid #ffffff;
+  border-top: 10px solid #889e83;
 }
 
 /* Wrapper for page content to push down footer */
@@ -94,7 +94,7 @@ html, body {
   color: #556b52;
 }
 .container a:hover {
-  color: #A3BCB6;
+  color: #8fa38c;
 }
 .container p img, .img-responsive {
   display: block;
