@@ -4,7 +4,7 @@ html, body {
   background-color: #101721;
   font-family: "Lucida Console", "Courier New", monospace;
   /* The html and body elements cannot have any padding or margin. */
-  border-top: 3px solid #101721;
+  border-top: 2px solid #101721;
 }
 
 /* Wrapper for page content to push down footer */
