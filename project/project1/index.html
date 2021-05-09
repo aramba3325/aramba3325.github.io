@@ -1,0 +1,5193 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Alec Ramba" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 1: Exploratory Data Analysis</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project1/">Project 1: Exploratory Data Analysis</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+<script src="../../rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="../../rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
+
+
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>I chose to use the drinks dataset (from fivethirtyeight) and the countries_of_the_world dataset (from kaggle). Both have information about countries (both listed the country name as a variable), which made it easy to join, but the had very different statistics, which made it interesting. The drinks dataset had data about alcohol consumption in each country, while the countries_of_the_world dataset had more normal information (Population, GDP, Birthrate, Deathrate, etc.). I wondered if there would be any interesting correlation between these two sets, and I hypothesized that I would see higher drinking rates with higher population densities, and lower GDPs and Literacy rates.</p>
+</div>
+<div id="downloading-and-tidying" class="section level2">
+<h2>Downloading and Tidying</h2>
+<pre class="r"><code>library(tidyverse)
+library(readr)
+countries_of_the_world &lt;- read_csv(&quot;countries of the world.csv&quot;, 
+    col_types = cols(`Coastline (coast/area ratio)` = col_skip(), 
+        `Net migration` = col_skip(), `Phones (per 1000)` = col_skip(), 
+        `Arable (%)` = col_skip(), `Crops (%)` = col_skip(), 
+        `Other (%)` = col_skip(), Climate = col_skip(), Agriculture = col_skip(), 
+        Industry = col_skip(), Service = col_skip()))
+library(fivethirtyeight)
+library(kableExtra)
+
+drinks &lt;- drinks %&gt;% pivot_longer(cols = c(beer_servings:wine_servings), 
+    names_to = &quot;Alcohol_Type&quot;, values_to = &quot;Servings&quot;) %&gt;% separate(Alcohol_Type, 
+    into = c(&quot;Alcohol_Type&quot;, &quot;servingsname&quot;)) %&gt;% select(-servingsname)</code></pre>
+<p>In this step, I downloaded the two datests and tidyd the drinks dataset before joining it in the next step. I used pivot_longer to condense the 3 columns “beer_servings”, “spirit_servings” and “wine_servings” (which each had numerical entries of servings per person for each country) into two columns, “Alcohol_Type” (categorical) and “Servings” (numeric).</p>
+<p><em>Side Note: As you can see from the code when I downloaded the “countries_of_the_world” dataset, I dropped several variables. I did this to get rid of extraneous data that was unnecessary and that I didn’t plan on using, just to clean up the dataset before I started the project. This data didn’t pertain to any of the data that I kept, and thus couldn’t have been tidyd into a more usable form.</em></p>
+</div>
+<div id="joining" class="section level2">
+<h2>Joining</h2>
+<pre class="r"><code>countrydata &lt;- countries_of_the_world %&gt;% inner_join(drinks, 
+    by = c(Country = &quot;country&quot;))
+countrydata</code></pre>
+<pre><code>## # A tibble: 522 x 13
+##    Country  Region Population `Area (sq. mi.)` `Pop. Density (… `Infant mortali…
+##    &lt;chr&gt;    &lt;chr&gt;       &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Afghani… ASIA …   31056997           647500             48             163.  
+##  2 Afghani… ASIA …   31056997           647500             48             163.  
+##  3 Afghani… ASIA …   31056997           647500             48             163.  
+##  4 Albania  EASTE…    3581655            28748            125.             21.5 
+##  5 Albania  EASTE…    3581655            28748            125.             21.5 
+##  6 Albania  EASTE…    3581655            28748            125.             21.5 
+##  7 Algeria  NORTH…   32930091          2381740             13.8            31   
+##  8 Algeria  NORTH…   32930091          2381740             13.8            31   
+##  9 Algeria  NORTH…   32930091          2381740             13.8            31   
+## 10 Andorra  WESTE…      71201              468            152.              4.05
+## # … with 512 more rows, and 7 more variables: GDP ($ per capita) &lt;dbl&gt;,
+## #   Literacy (%) &lt;dbl&gt;, Birthrate &lt;dbl&gt;, Deathrate &lt;dbl&gt;,
+## #   total_litres_of_pure_alcohol &lt;dbl&gt;, Alcohol_Type &lt;chr&gt;, Servings &lt;int&gt;</code></pre>
+<pre class="r"><code>countrydata %&gt;% head() %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-responsive" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+Population
+</th>
+<th style="text-align:right;">
+Area (sq. mi.)
+</th>
+<th style="text-align:right;">
+Pop. Density (per sq. mi.)
+</th>
+<th style="text-align:right;">
+Infant mortality (per 1000 births)
+</th>
+<th style="text-align:right;">
+GDP ($ per capita)
+</th>
+<th style="text-align:right;">
+Literacy (%)
+</th>
+<th style="text-align:right;">
+Birthrate
+</th>
+<th style="text-align:right;">
+Deathrate
+</th>
+<th style="text-align:right;">
+total_litres_of_pure_alcohol
+</th>
+<th style="text-align:left;">
+Alcohol_Type
+</th>
+<th style="text-align:right;">
+Servings
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Afghanistan
+</td>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+31056997
+</td>
+<td style="text-align:right;">
+647500
+</td>
+<td style="text-align:right;">
+48.0
+</td>
+<td style="text-align:right;">
+163.07
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+36.0
+</td>
+<td style="text-align:right;">
+46.60
+</td>
+<td style="text-align:right;">
+20.34
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:left;">
+beer
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Afghanistan
+</td>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+31056997
+</td>
+<td style="text-align:right;">
+647500
+</td>
+<td style="text-align:right;">
+48.0
+</td>
+<td style="text-align:right;">
+163.07
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+36.0
+</td>
+<td style="text-align:right;">
+46.60
+</td>
+<td style="text-align:right;">
+20.34
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:left;">
+spirit
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Afghanistan
+</td>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+31056997
+</td>
+<td style="text-align:right;">
+647500
+</td>
+<td style="text-align:right;">
+48.0
+</td>
+<td style="text-align:right;">
+163.07
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+36.0
+</td>
+<td style="text-align:right;">
+46.60
+</td>
+<td style="text-align:right;">
+20.34
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:left;">
+wine
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Albania
+</td>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+3581655
+</td>
+<td style="text-align:right;">
+28748
+</td>
+<td style="text-align:right;">
+124.6
+</td>
+<td style="text-align:right;">
+21.52
+</td>
+<td style="text-align:right;">
+4500
+</td>
+<td style="text-align:right;">
+86.5
+</td>
+<td style="text-align:right;">
+15.11
+</td>
+<td style="text-align:right;">
+5.22
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+<td style="text-align:left;">
+beer
+</td>
+<td style="text-align:right;">
+89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Albania
+</td>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+3581655
+</td>
+<td style="text-align:right;">
+28748
+</td>
+<td style="text-align:right;">
+124.6
+</td>
+<td style="text-align:right;">
+21.52
+</td>
+<td style="text-align:right;">
+4500
+</td>
+<td style="text-align:right;">
+86.5
+</td>
+<td style="text-align:right;">
+15.11
+</td>
+<td style="text-align:right;">
+5.22
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+<td style="text-align:left;">
+spirit
+</td>
+<td style="text-align:right;">
+132
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Albania
+</td>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+3581655
+</td>
+<td style="text-align:right;">
+28748
+</td>
+<td style="text-align:right;">
+124.6
+</td>
+<td style="text-align:right;">
+21.52
+</td>
+<td style="text-align:right;">
+4500
+</td>
+<td style="text-align:right;">
+86.5
+</td>
+<td style="text-align:right;">
+15.11
+</td>
+<td style="text-align:right;">
+5.22
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+<td style="text-align:left;">
+wine
+</td>
+<td style="text-align:right;">
+54
+</td>
+</tr>
+</tbody>
+</table>
+<p>Here, I joined the datasets to create “countrydata”. The “countries_of_the_world” dataset had 10 variables (including country name) and 227 entries (meaning 227 countries listed). The “drinks” dataset had 4 variables (including country name) and 579 entries (meaning 193 countries listed). I joined the two datasets using an inner join, so that there would be full data (both about the country in general and about it’s drinking data) for all the countries in the joined dataset. This joined dataset has 13 variables and 522 entries, meaning there were 174 matches in country names and 72 country names that didn’t match/weren’t in both datasets.</p>
+</div>
+<div id="summary-statistics" class="section level2">
+<h2>Summary Statistics</h2>
+<div id="population" class="section level5">
+<h5>Population</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanPopulation = mean(Population, na.rm = T), TotalPopulation = sum(Population)) %&gt;% 
+    arrange(TotalPopulation) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanPopulation
+</th>
+<th style="text-align:right;">
+TotalPopulation
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+2394991
+</td>
+<td style="text-align:right;">
+21554922
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+2300181
+</td>
+<td style="text-align:right;">
+96607611
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+33098932
+</td>
+<td style="text-align:right;">
+99296796
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+10492340
+</td>
+<td style="text-align:right;">
+346247223
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+12471637
+</td>
+<td style="text-align:right;">
+411564024
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+32226825
+</td>
+<td style="text-align:right;">
+483402375
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+13655652
+</td>
+<td style="text-align:right;">
+573537384
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+17999950
+</td>
+<td style="text-align:right;">
+1187996709
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+19160861
+</td>
+<td style="text-align:right;">
+1666994868
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+15714231
+</td>
+<td style="text-align:right;">
+2027135748
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+168435588
+</td>
+<td style="text-align:right;">
+10611442020
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>Here is a general look at the mean and total population for each region. (Table 1)</em></p>
+</div>
+<div id="area" class="section level5">
+<h5>Area</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanArea = mean(`Area (sq. mi.)`, na.rm = T), TotalArea = sum(`Area (sq. mi.)`)) %&gt;% 
+    arrange(TotalArea) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanArea
+</th>
+<th style="text-align:right;">
+TotalArea
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+58338.33
+</td>
+<td style="text-align:right;">
+525045
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+100099.36
+</td>
+<td style="text-align:right;">
+3303279
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+168552.09
+</td>
+<td style="text-align:right;">
+11124438
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+310669.00
+</td>
+<td style="text-align:right;">
+13048098
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+456876.64
+</td>
+<td style="text-align:right;">
+15076929
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1150578.00
+</td>
+<td style="text-align:right;">
+17258670
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+606742.29
+</td>
+<td style="text-align:right;">
+25483176
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+9984670.00
+</td>
+<td style="text-align:right;">
+29954010
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+704037.79
+</td>
+<td style="text-align:right;">
+61251288
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+488659.88
+</td>
+<td style="text-align:right;">
+63037125
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+1054623.10
+</td>
+<td style="text-align:right;">
+66441255
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>Here is a general look at the mean and total area (in square miles) for each region. (Table 2)</em></p>
+</div>
+<div id="population-density" class="section level5">
+<h5>Population Density</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanPopDensity = mean(`Pop. Density (per sq. mi.)`, na.rm = T), 
+    SD = sd(`Pop. Density (per sq. mi.)`, na.rm = T), Min. = min(`Pop. Density (per sq. mi.)`, 
+        na.rm = T), Max. = max(`Pop. Density (per sq. mi.)`, 
+        na.rm = T), `25%` = quantile(`Pop. Density (per sq. mi.)`, 
+        na.rm = T, probs = c(0.25)), `75%` = quantile(`Pop. Density (per sq. mi.)`, 
+        na.rm = T, probs = c(0.75))) %&gt;% arrange(MeanPopDensity) %&gt;% 
+    kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanPopDensity
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3.30000
+</td>
+<td style="text-align:right;">
+0.00000
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+39.83333
+</td>
+<td style="text-align:right;">
+11.65837
+</td>
+<td style="text-align:right;">
+29.3
+</td>
+<td style="text-align:right;">
+55.0
+</td>
+<td style="text-align:right;">
+29.3
+</td>
+<td style="text-align:right;">
+55.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+46.52000
+</td>
+<td style="text-align:right;">
+32.71660
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+78.8
+</td>
+<td style="text-align:right;">
+13.8
+</td>
+<td style="text-align:right;">
+74.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+61.10000
+</td>
+<td style="text-align:right;">
+37.35274
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+<td style="text-align:right;">
+132.0
+</td>
+<td style="text-align:right;">
+26.3
+</td>
+<td style="text-align:right;">
+91.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+82.37674
+</td>
+<td style="text-align:right;">
+114.40402
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+<td style="text-align:right;">
+608.3
+</td>
+<td style="text-align:right;">
+16.5
+</td>
+<td style="text-align:right;">
+93.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+102.07273
+</td>
+<td style="text-align:right;">
+19.72524
+</td>
+<td style="text-align:right;">
+66.6
+</td>
+<td style="text-align:right;">
+129.8
+</td>
+<td style="text-align:right;">
+80.9
+</td>
+<td style="text-align:right;">
+123.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+109.80690
+</td>
+<td style="text-align:right;">
+139.37827
+</td>
+<td style="text-align:right;">
+2.7
+</td>
+<td style="text-align:right;">
+649.5
+</td>
+<td style="text-align:right;">
+21.3
+</td>
+<td style="text-align:right;">
+156.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+120.40000
+</td>
+<td style="text-align:right;">
+183.69628
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+632.7
+</td>
+<td style="text-align:right;">
+15.2
+</td>
+<td style="text-align:right;">
+130.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+174.61429
+</td>
+<td style="text-align:right;">
+266.41056
+</td>
+<td style="text-align:right;">
+13.8
+</td>
+<td style="text-align:right;">
+1050.5
+</td>
+<td style="text-align:right;">
+40.6
+</td>
+<td style="text-align:right;">
+135.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+543.22381
+</td>
+<td style="text-align:right;">
+1372.46453
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+6482.2
+</td>
+<td style="text-align:right;">
+65.8
+</td>
+<td style="text-align:right;">
+308.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+939.34545
+</td>
+<td style="text-align:right;">
+3381.62645
+</td>
+<td style="text-align:right;">
+2.9
+</td>
+<td style="text-align:right;">
+16271.5
+</td>
+<td style="text-align:right;">
+80.0
+</td>
+<td style="text-align:right;">
+247.6
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for population density in each region, as well as the number of countries contributing to each region. (Table 3)</em></p>
+<pre class="r"><code>countrydata %&gt;% distinct(Country, .keep_all = TRUE) %&gt;% select(Country, 
+    `Pop. Density (per sq. mi.)`, total_litres_of_pure_alcohol) %&gt;% 
+    arrange(`Pop. Density (per sq. mi.)`) %&gt;% head(10) %&gt;% kbl() %&gt;% 
+    kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:right;">
+Pop. Density (per sq. mi.)
+</th>
+<th style="text-align:right;">
+total_litres_of_pure_alcohol
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Mongolia
+</td>
+<td style="text-align:right;">
+1.8
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Namibia
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+<td style="text-align:right;">
+6.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Australia
+</td>
+<td style="text-align:right;">
+2.6
+</td>
+<td style="text-align:right;">
+10.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Botswana
+</td>
+<td style="text-align:right;">
+2.7
+</td>
+<td style="text-align:right;">
+5.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Suriname
+</td>
+<td style="text-align:right;">
+2.7
+</td>
+<td style="text-align:right;">
+5.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Iceland
+</td>
+<td style="text-align:right;">
+2.9
+</td>
+<td style="text-align:right;">
+6.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mauritania
+</td>
+<td style="text-align:right;">
+3.1
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Canada
+</td>
+<td style="text-align:right;">
+3.3
+</td>
+<td style="text-align:right;">
+8.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Libya
+</td>
+<td style="text-align:right;">
+3.4
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Guyana
+</td>
+<td style="text-align:right;">
+3.6
+</td>
+<td style="text-align:right;">
+7.1
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>countrydata %&gt;% distinct(Country, .keep_all = TRUE) %&gt;% filter(Region == 
+    &quot;WESTERN EUROPE&quot;) %&gt;% select(Country, `Pop. Density (per sq. mi.)`, 
+    total_litres_of_pure_alcohol) %&gt;% arrange(`Pop. Density (per sq. mi.)`) %&gt;% 
+    head(10) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:right;">
+Pop. Density (per sq. mi.)
+</th>
+<th style="text-align:right;">
+total_litres_of_pure_alcohol
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Iceland
+</td>
+<td style="text-align:right;">
+2.9
+</td>
+<td style="text-align:right;">
+6.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Norway
+</td>
+<td style="text-align:right;">
+14.2
+</td>
+<td style="text-align:right;">
+6.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Finland
+</td>
+<td style="text-align:right;">
+15.5
+</td>
+<td style="text-align:right;">
+10.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sweden
+</td>
+<td style="text-align:right;">
+20.0
+</td>
+<td style="text-align:right;">
+7.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ireland
+</td>
+<td style="text-align:right;">
+57.8
+</td>
+<td style="text-align:right;">
+11.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Spain
+</td>
+<td style="text-align:right;">
+80.0
+</td>
+<td style="text-align:right;">
+10.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Greece
+</td>
+<td style="text-align:right;">
+81.0
+</td>
+<td style="text-align:right;">
+8.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Austria
+</td>
+<td style="text-align:right;">
+97.7
+</td>
+<td style="text-align:right;">
+9.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+France
+</td>
+<td style="text-align:right;">
+111.3
+</td>
+<td style="text-align:right;">
+11.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Portugal
+</td>
+<td style="text-align:right;">
+114.8
+</td>
+<td style="text-align:right;">
+11.0
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>These two tables (above) show population density and total alcohol consumption per person (in liters) side by side. The top table shows the data for all countries, while the bottom table shows the data only for countries in Western Europe (the region with the highest mean population density). (Tables 3a and 3b)</em></p>
+</div>
+<div id="infant-mortality" class="section level5">
+<h5>Infant Mortality</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanInfantMortality = mean(`Infant mortality (per 1000 births)`, 
+        na.rm = T), SD = sd(`Infant mortality (per 1000 births)`, 
+        na.rm = T), Min. = min(`Infant mortality (per 1000 births)`, 
+        na.rm = T), Max. = max(`Infant mortality (per 1000 births)`, 
+        na.rm = T), `25%` = quantile(`Infant mortality (per 1000 births)`, 
+        na.rm = T, probs = c(0.25)), `75%` = quantile(`Infant mortality (per 1000 births)`, 
+        na.rm = T, probs = c(0.75))) %&gt;% arrange(MeanInfantMortality) %&gt;% 
+    kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanInfantMortality
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+4.568182
+</td>
+<td style="text-align:right;">
+0.8058362
+</td>
+<td style="text-align:right;">
+2.77
+</td>
+<td style="text-align:right;">
+5.94
+</td>
+<td style="text-align:right;">
+4.05
+</td>
+<td style="text-align:right;">
+5.16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4.750000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+4.75
+</td>
+<td style="text-align:right;">
+4.75
+</td>
+<td style="text-align:right;">
+4.75
+</td>
+<td style="text-align:right;">
+4.75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+8.103333
+</td>
+<td style="text-align:right;">
+1.1650322
+</td>
+<td style="text-align:right;">
+6.89
+</td>
+<td style="text-align:right;">
+9.55
+</td>
+<td style="text-align:right;">
+6.89
+</td>
+<td style="text-align:right;">
+9.55
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+11.926364
+</td>
+<td style="text-align:right;">
+7.3107655
+</td>
+<td style="text-align:right;">
+3.93
+</td>
+<td style="text-align:right;">
+26.43
+</td>
+<td style="text-align:right;">
+6.84
+</td>
+<td style="text-align:right;">
+20.55
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+23.677857
+</td>
+<td style="text-align:right;">
+16.0667821
+</td>
+<td style="text-align:right;">
+7.03
+</td>
+<td style="text-align:right;">
+61.50
+</td>
+<td style="text-align:right;">
+13.24
+</td>
+<td style="text-align:right;">
+29.53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+24.167692
+</td>
+<td style="text-align:right;">
+16.9391326
+</td>
+<td style="text-align:right;">
+4.69
+</td>
+<td style="text-align:right;">
+55.16
+</td>
+<td style="text-align:right;">
+12.62
+</td>
+<td style="text-align:right;">
+29.45
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+24.342069
+</td>
+<td style="text-align:right;">
+13.4878528
+</td>
+<td style="text-align:right;">
+6.33
+</td>
+<td style="text-align:right;">
+73.45
+</td>
+<td style="text-align:right;">
+14.62
+</td>
+<td style="text-align:right;">
+29.32
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+30.916000
+</td>
+<td style="text-align:right;">
+6.4650177
+</td>
+<td style="text-align:right;">
+24.60
+</td>
+<td style="text-align:right;">
+41.62
+</td>
+<td style="text-align:right;">
+24.77
+</td>
+<td style="text-align:right;">
+32.59
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+47.048182
+</td>
+<td style="text-align:right;">
+30.9740090
+</td>
+<td style="text-align:right;">
+13.37
+</td>
+<td style="text-align:right;">
+110.76
+</td>
+<td style="text-align:right;">
+20.34
+</td>
+<td style="text-align:right;">
+73.08
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+48.111429
+</td>
+<td style="text-align:right;">
+37.6353090
+</td>
+<td style="text-align:right;">
+2.29
+</td>
+<td style="text-align:right;">
+163.07
+</td>
+<td style="text-align:right;">
+20.48
+</td>
+<td style="text-align:right;">
+66.98
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+83.569302
+</td>
+<td style="text-align:right;">
+32.2900584
+</td>
+<td style="text-align:right;">
+15.03
+</td>
+<td style="text-align:right;">
+191.19
+</td>
+<td style="text-align:right;">
+62.50
+</td>
+<td style="text-align:right;">
+98.80
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for infant mortality in each region, as well as the number of countries contributing to each region. (Table 4)</em></p>
+</div>
+<div id="gdp" class="section level5">
+<h5>GDP</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanGDP = mean(`GDP ($ per capita)`, na.rm = T), SD = sd(`GDP ($ per capita)`, 
+        na.rm = T), Min. = min(`GDP ($ per capita)`, na.rm = T), 
+    Max. = max(`GDP ($ per capita)`, na.rm = T), `25%` = quantile(`GDP ($ per capita)`, 
+        na.rm = T, probs = c(0.25)), `75%` = quantile(`GDP ($ per capita)`, 
+        na.rm = T, probs = c(0.75))) %&gt;% arrange(MeanGDP) %&gt;% 
+    kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanGDP
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+2372.093
+</td>
+<td style="text-align:right;">
+2744.4540
+</td>
+<td style="text-align:right;">
+500
+</td>
+<td style="text-align:right;">
+11400
+</td>
+<td style="text-align:right;">
+800
+</td>
+<td style="text-align:right;">
+2100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+3554.545
+</td>
+<td style="text-align:right;">
+1947.7697
+</td>
+<td style="text-align:right;">
+1000
+</td>
+<td style="text-align:right;">
+6300
+</td>
+<td style="text-align:right;">
+1700
+</td>
+<td style="text-align:right;">
+5800
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5460.000
+</td>
+<td style="text-align:right;">
+1268.7452
+</td>
+<td style="text-align:right;">
+4000
+</td>
+<td style="text-align:right;">
+6900
+</td>
+<td style="text-align:right;">
+4000
+</td>
+<td style="text-align:right;">
+6400
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+6213.793
+</td>
+<td style="text-align:right;">
+3435.2540
+</td>
+<td style="text-align:right;">
+1600
+</td>
+<td style="text-align:right;">
+15700
+</td>
+<td style="text-align:right;">
+4000
+</td>
+<td style="text-align:right;">
+9000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+6309.524
+</td>
+<td style="text-align:right;">
+7535.3942
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+28200
+</td>
+<td style="text-align:right;">
+1900
+</td>
+<td style="text-align:right;">
+7000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+6678.571
+</td>
+<td style="text-align:right;">
+8135.3050
+</td>
+<td style="text-align:right;">
+800
+</td>
+<td style="text-align:right;">
+29000
+</td>
+<td style="text-align:right;">
+1700
+</td>
+<td style="text-align:right;">
+5800
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+10145.455
+</td>
+<td style="text-align:right;">
+4914.9066
+</td>
+<td style="text-align:right;">
+2200
+</td>
+<td style="text-align:right;">
+19000
+</td>
+<td style="text-align:right;">
+6700
+</td>
+<td style="text-align:right;">
+13900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+11300.000
+</td>
+<td style="text-align:right;">
+912.4144
+</td>
+<td style="text-align:right;">
+10200
+</td>
+<td style="text-align:right;">
+12300
+</td>
+<td style="text-align:right;">
+10200
+</td>
+<td style="text-align:right;">
+12300
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+11850.000
+</td>
+<td style="text-align:right;">
+7899.8997
+</td>
+<td style="text-align:right;">
+800
+</td>
+<td style="text-align:right;">
+23200
+</td>
+<td style="text-align:right;">
+4300
+</td>
+<td style="text-align:right;">
+19200
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+28500.000
+</td>
+<td style="text-align:right;">
+7771.9614
+</td>
+<td style="text-align:right;">
+17700
+</td>
+<td style="text-align:right;">
+55100
+</td>
+<td style="text-align:right;">
+26700
+</td>
+<td style="text-align:right;">
+30900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+29800.000
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+29800
+</td>
+<td style="text-align:right;">
+29800
+</td>
+<td style="text-align:right;">
+29800
+</td>
+<td style="text-align:right;">
+29800
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for GDP in each region, as well as the number of countries contributing to each region. (Table 5)</em></p>
+<pre class="r"><code>countrydata %&gt;% distinct(Country, .keep_all = TRUE) %&gt;% select(Country, 
+    `GDP ($ per capita)`, total_litres_of_pure_alcohol) %&gt;% arrange(`GDP ($ per capita)`) %&gt;% 
+    head(10) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:right;">
+GDP ($ per capita)
+</th>
+<th style="text-align:right;">
+total_litres_of_pure_alcohol
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Sierra Leone
+</td>
+<td style="text-align:right;">
+500
+</td>
+<td style="text-align:right;">
+6.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Somalia
+</td>
+<td style="text-align:right;">
+500
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Burundi
+</td>
+<td style="text-align:right;">
+600
+</td>
+<td style="text-align:right;">
+6.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Malawi
+</td>
+<td style="text-align:right;">
+600
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tanzania
+</td>
+<td style="text-align:right;">
+600
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Afghanistan
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Comoros
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+0.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Eritrea
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ethiopia
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+0.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Guinea-Bissau
+</td>
+<td style="text-align:right;">
+800
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>countrydata %&gt;% distinct(Country, .keep_all = TRUE) %&gt;% filter(Region == 
+    &quot;SUB-SAHARAN AFRICA&quot;) %&gt;% select(Country, `GDP ($ per capita)`, 
+    total_litres_of_pure_alcohol) %&gt;% arrange(`GDP ($ per capita)`) %&gt;% 
+    head(10) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:right;">
+GDP ($ per capita)
+</th>
+<th style="text-align:right;">
+total_litres_of_pure_alcohol
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Sierra Leone
+</td>
+<td style="text-align:right;">
+500
+</td>
+<td style="text-align:right;">
+6.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Somalia
+</td>
+<td style="text-align:right;">
+500
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Burundi
+</td>
+<td style="text-align:right;">
+600
+</td>
+<td style="text-align:right;">
+6.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Malawi
+</td>
+<td style="text-align:right;">
+600
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tanzania
+</td>
+<td style="text-align:right;">
+600
+</td>
+<td style="text-align:right;">
+5.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Comoros
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+0.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Eritrea
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ethiopia
+</td>
+<td style="text-align:right;">
+700
+</td>
+<td style="text-align:right;">
+0.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Guinea-Bissau
+</td>
+<td style="text-align:right;">
+800
+</td>
+<td style="text-align:right;">
+2.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Madagascar
+</td>
+<td style="text-align:right;">
+800
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>These two tables (above) show GDP and total alcohol consumption per person (in liters) side by side. The top table shows the data for all countries, while the bottom table shows the data only for countries in Sub-Saharan Africa (the region with the lowest mean GDP). (Tables 5a and 5b)</em></p>
+</div>
+<div id="literacy" class="section level5">
+<h5>Literacy</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanLiteracy = mean(`Literacy (%)`, na.rm = T), SD = sd(`Literacy (%)`, 
+        na.rm = T), Min. = min(`Literacy (%)`, na.rm = T), Max. = max(`Literacy (%)`, 
+        na.rm = T), `25%` = quantile(`Literacy (%)`, na.rm = T, 
+        probs = c(0.25)), `75%` = quantile(`Literacy (%)`, na.rm = T, 
+        probs = c(0.75))) %&gt;% arrange(MeanLiteracy) %&gt;% kbl() %&gt;% 
+    kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanLiteracy
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+60.99070
+</td>
+<td style="text-align:right;">
+18.8930892
+</td>
+<td style="text-align:right;">
+17.6
+</td>
+<td style="text-align:right;">
+90.7
+</td>
+<td style="text-align:right;">
+42.7
+</td>
+<td style="text-align:right;">
+79.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+67.24000
+</td>
+<td style="text-align:right;">
+11.5680471
+</td>
+<td style="text-align:right;">
+51.7
+</td>
+<td style="text-align:right;">
+82.6
+</td>
+<td style="text-align:right;">
+57.7
+</td>
+<td style="text-align:right;">
+74.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+76.31429
+</td>
+<td style="text-align:right;">
+21.6663695
+</td>
+<td style="text-align:right;">
+36.0
+</td>
+<td style="text-align:right;">
+99.0
+</td>
+<td style="text-align:right;">
+59.5
+</td>
+<td style="text-align:right;">
+92.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+79.52143
+</td>
+<td style="text-align:right;">
+15.6774428
+</td>
+<td style="text-align:right;">
+40.4
+</td>
+<td style="text-align:right;">
+97.6
+</td>
+<td style="text-align:right;">
+76.9
+</td>
+<td style="text-align:right;">
+89.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+88.92000
+</td>
+<td style="text-align:right;">
+15.7771638
+</td>
+<td style="text-align:right;">
+53.0
+</td>
+<td style="text-align:right;">
+100.0
+</td>
+<td style="text-align:right;">
+92.0
+</td>
+<td style="text-align:right;">
+99.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+89.27241
+</td>
+<td style="text-align:right;">
+10.5434945
+</td>
+<td style="text-align:right;">
+52.9
+</td>
+<td style="text-align:right;">
+98.8
+</td>
+<td style="text-align:right;">
+87.2
+</td>
+<td style="text-align:right;">
+96.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+97.00000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+97.0
+</td>
+<td style="text-align:right;">
+97.0
+</td>
+<td style="text-align:right;">
+97.0
+</td>
+<td style="text-align:right;">
+97.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+97.08889
+</td>
+<td style="text-align:right;">
+4.3267801
+</td>
+<td style="text-align:right;">
+86.5
+</td>
+<td style="text-align:right;">
+99.9
+</td>
+<td style="text-align:right;">
+98.4
+</td>
+<td style="text-align:right;">
+99.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+98.31818
+</td>
+<td style="text-align:right;">
+1.9469826
+</td>
+<td style="text-align:right;">
+92.8
+</td>
+<td style="text-align:right;">
+100.0
+</td>
+<td style="text-align:right;">
+98.0
+</td>
+<td style="text-align:right;">
+99.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+98.64545
+</td>
+<td style="text-align:right;">
+0.9310917
+</td>
+<td style="text-align:right;">
+97.0
+</td>
+<td style="text-align:right;">
+99.7
+</td>
+<td style="text-align:right;">
+98.0
+</td>
+<td style="text-align:right;">
+99.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+99.73333
+</td>
+<td style="text-align:right;">
+0.1000000
+</td>
+<td style="text-align:right;">
+99.6
+</td>
+<td style="text-align:right;">
+99.8
+</td>
+<td style="text-align:right;">
+99.6
+</td>
+<td style="text-align:right;">
+99.8
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for literacy rates in each region, as well as the number of countries contributing to each region. (Table 6)</em></p>
+<pre class="r"><code>countrydata %&gt;% distinct(Country, .keep_all = TRUE) %&gt;% select(Country, 
+    `Literacy (%)`, total_litres_of_pure_alcohol) %&gt;% arrange(`Literacy (%)`) %&gt;% 
+    head(10) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:right;">
+Literacy (%)
+</th>
+<th style="text-align:right;">
+total_litres_of_pure_alcohol
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Niger
+</td>
+<td style="text-align:right;">
+17.6
+</td>
+<td style="text-align:right;">
+0.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Burkina Faso
+</td>
+<td style="text-align:right;">
+26.6
+</td>
+<td style="text-align:right;">
+4.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sierra Leone
+</td>
+<td style="text-align:right;">
+31.4
+</td>
+<td style="text-align:right;">
+6.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Guinea
+</td>
+<td style="text-align:right;">
+35.9
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Afghanistan
+</td>
+<td style="text-align:right;">
+36.0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Somalia
+</td>
+<td style="text-align:right;">
+37.8
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Senegal
+</td>
+<td style="text-align:right;">
+40.2
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Iraq
+</td>
+<td style="text-align:right;">
+40.4
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Benin
+</td>
+<td style="text-align:right;">
+40.9
+</td>
+<td style="text-align:right;">
+1.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mauritania
+</td>
+<td style="text-align:right;">
+41.7
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the literacy rate and total alcohol consumption per person (in liters) side by side. (Table 6a)</em></p>
+</div>
+<div id="birthrate" class="section level5">
+<h5>Birthrate</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanBirthrate = mean(Birthrate, na.rm = T), SD = sd(Birthrate, 
+        na.rm = T), Min. = min(Birthrate, na.rm = T), Max. = max(Birthrate, 
+        na.rm = T), `25%` = quantile(Birthrate, na.rm = T, probs = c(0.25)), 
+    `75%` = quantile(Birthrate, na.rm = T, probs = c(0.75))) %&gt;% 
+    arrange(MeanBirthrate) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanBirthrate
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+9.343333
+</td>
+<td style="text-align:right;">
+0.5639371
+</td>
+<td style="text-align:right;">
+8.75
+</td>
+<td style="text-align:right;">
+10.04
+</td>
+<td style="text-align:right;">
+8.75
+</td>
+<td style="text-align:right;">
+10.04
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+10.515455
+</td>
+<td style="text-align:right;">
+1.5105620
+</td>
+<td style="text-align:right;">
+8.25
+</td>
+<td style="text-align:right;">
+14.45
+</td>
+<td style="text-align:right;">
+9.68
+</td>
+<td style="text-align:right;">
+11.13
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+10.531000
+</td>
+<td style="text-align:right;">
+1.7809826
+</td>
+<td style="text-align:right;">
+8.98
+</td>
+<td style="text-align:right;">
+15.11
+</td>
+<td style="text-align:right;">
+9.61
+</td>
+<td style="text-align:right;">
+10.70
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+10.780000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+10.78
+</td>
+<td style="text-align:right;">
+10.78
+</td>
+<td style="text-align:right;">
+10.78
+</td>
+<td style="text-align:right;">
+10.78
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+18.574545
+</td>
+<td style="text-align:right;">
+7.7271943
+</td>
+<td style="text-align:right;">
+8.82
+</td>
+<td style="text-align:right;">
+32.65
+</td>
+<td style="text-align:right;">
+11.16
+</td>
+<td style="text-align:right;">
+26.36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+20.814000
+</td>
+<td style="text-align:right;">
+4.1305773
+</td>
+<td style="text-align:right;">
+15.52
+</td>
+<td style="text-align:right;">
+26.49
+</td>
+<td style="text-align:right;">
+17.14
+</td>
+<td style="text-align:right;">
+22.94
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+20.833793
+</td>
+<td style="text-align:right;">
+5.8197785
+</td>
+<td style="text-align:right;">
+11.89
+</td>
+<td style="text-align:right;">
+36.44
+</td>
+<td style="text-align:right;">
+16.73
+</td>
+<td style="text-align:right;">
+23.30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+23.000714
+</td>
+<td style="text-align:right;">
+6.2506516
+</td>
+<td style="text-align:right;">
+12.14
+</td>
+<td style="text-align:right;">
+33.05
+</td>
+<td style="text-align:right;">
+18.03
+</td>
+<td style="text-align:right;">
+29.36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+23.507143
+</td>
+<td style="text-align:right;">
+9.4432947
+</td>
+<td style="text-align:right;">
+9.34
+</td>
+<td style="text-align:right;">
+46.60
+</td>
+<td style="text-align:right;">
+16.86
+</td>
+<td style="text-align:right;">
+29.80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+23.527857
+</td>
+<td style="text-align:right;">
+8.5901519
+</td>
+<td style="text-align:right;">
+12.56
+</td>
+<td style="text-align:right;">
+42.89
+</td>
+<td style="text-align:right;">
+17.80
+</td>
+<td style="text-align:right;">
+29.34
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+36.787209
+</td>
+<td style="text-align:right;">
+8.5196513
+</td>
+<td style="text-align:right;">
+15.43
+</td>
+<td style="text-align:right;">
+50.73
+</td>
+<td style="text-align:right;">
+33.89
+</td>
+<td style="text-align:right;">
+42.22
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for birthrate in each region, as well as the number of countries contributing to each region. (Table 7)</em></p>
+</div>
+<div id="deathrate" class="section level5">
+<h5>Deathrate</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanDeathrate = mean(Deathrate, na.rm = T), SD = sd(Deathrate, 
+        na.rm = T), Min. = min(Deathrate, na.rm = T), Max. = max(Deathrate, 
+        na.rm = T), `25%` = quantile(Deathrate, na.rm = T, probs = c(0.25)), 
+    `75%` = quantile(Deathrate, na.rm = T, probs = c(0.75))) %&gt;% 
+    arrange(MeanDeathrate) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanDeathrate
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4.806000
+</td>
+<td style="text-align:right;">
+0.7578899
+</td>
+<td style="text-align:right;">
+3.48
+</td>
+<td style="text-align:right;">
+5.58
+</td>
+<td style="text-align:right;">
+4.61
+</td>
+<td style="text-align:right;">
+5.23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+4.945000
+</td>
+<td style="text-align:right;">
+1.7672126
+</td>
+<td style="text-align:right;">
+2.41
+</td>
+<td style="text-align:right;">
+8.30
+</td>
+<td style="text-align:right;">
+3.81
+</td>
+<td style="text-align:right;">
+6.18
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+6.477931
+</td>
+<td style="text-align:right;">
+1.8592935
+</td>
+<td style="text-align:right;">
+4.23
+</td>
+<td style="text-align:right;">
+12.17
+</td>
+<td style="text-align:right;">
+5.28
+</td>
+<td style="text-align:right;">
+7.27
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+6.556154
+</td>
+<td style="text-align:right;">
+1.2497802
+</td>
+<td style="text-align:right;">
+3.92
+</td>
+<td style="text-align:right;">
+8.26
+</td>
+<td style="text-align:right;">
+5.65
+</td>
+<td style="text-align:right;">
+7.51
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7.800000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+7.80
+</td>
+<td style="text-align:right;">
+7.80
+</td>
+<td style="text-align:right;">
+7.80
+</td>
+<td style="text-align:right;">
+7.80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+7.978571
+</td>
+<td style="text-align:right;">
+3.5445041
+</td>
+<td style="text-align:right;">
+3.45
+</td>
+<td style="text-align:right;">
+20.34
+</td>
+<td style="text-align:right;">
+6.22
+</td>
+<td style="text-align:right;">
+9.06
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+9.375455
+</td>
+<td style="text-align:right;">
+1.4474223
+</td>
+<td style="text-align:right;">
+6.25
+</td>
+<td style="text-align:right;">
+12.91
+</td>
+<td style="text-align:right;">
+8.41
+</td>
+<td style="text-align:right;">
+10.31
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+9.950000
+</td>
+<td style="text-align:right;">
+2.4631116
+</td>
+<td style="text-align:right;">
+7.08
+</td>
+<td style="text-align:right;">
+14.39
+</td>
+<td style="text-align:right;">
+8.23
+</td>
+<td style="text-align:right;">
+12.64
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+10.486000
+</td>
+<td style="text-align:right;">
+2.4065952
+</td>
+<td style="text-align:right;">
+5.22
+</td>
+<td style="text-align:right;">
+14.27
+</td>
+<td style="text-align:right;">
+9.45
+</td>
+<td style="text-align:right;">
+11.77
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+12.630000
+</td>
+<td style="text-align:right;">
+1.2501700
+</td>
+<td style="text-align:right;">
+10.98
+</td>
+<td style="text-align:right;">
+13.66
+</td>
+<td style="text-align:right;">
+10.98
+</td>
+<td style="text-align:right;">
+13.66
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+16.041628
+</td>
+<td style="text-align:right;">
+5.9554781
+</td>
+<td style="text-align:right;">
+6.29
+</td>
+<td style="text-align:right;">
+29.74
+</td>
+<td style="text-align:right;">
+12.16
+</td>
+<td style="text-align:right;">
+19.93
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for deathrate in each region, as well as the number of countries contributing to each region. (Table 8)</em></p>
+<pre class="r"><code>countrydata &lt;- countrydata %&gt;% mutate(Population_Growth = Birthrate - 
+    Deathrate) %&gt;% select(1:Deathrate, Population_Growth, everything())
+
+countrydata %&gt;% distinct(Country, .keep_all = TRUE) %&gt;% select(Country, 
+    Birthrate, Deathrate, Population_Growth) %&gt;% head(10) %&gt;% 
+    kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Country
+</th>
+<th style="text-align:right;">
+Birthrate
+</th>
+<th style="text-align:right;">
+Deathrate
+</th>
+<th style="text-align:right;">
+Population_Growth
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Afghanistan
+</td>
+<td style="text-align:right;">
+46.60
+</td>
+<td style="text-align:right;">
+20.34
+</td>
+<td style="text-align:right;">
+26.26
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Albania
+</td>
+<td style="text-align:right;">
+15.11
+</td>
+<td style="text-align:right;">
+5.22
+</td>
+<td style="text-align:right;">
+9.89
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Algeria
+</td>
+<td style="text-align:right;">
+17.14
+</td>
+<td style="text-align:right;">
+4.61
+</td>
+<td style="text-align:right;">
+12.53
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Andorra
+</td>
+<td style="text-align:right;">
+8.71
+</td>
+<td style="text-align:right;">
+6.25
+</td>
+<td style="text-align:right;">
+2.46
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Angola
+</td>
+<td style="text-align:right;">
+45.11
+</td>
+<td style="text-align:right;">
+24.20
+</td>
+<td style="text-align:right;">
+20.91
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Antigua &amp; Barbuda
+</td>
+<td style="text-align:right;">
+16.93
+</td>
+<td style="text-align:right;">
+5.37
+</td>
+<td style="text-align:right;">
+11.56
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Argentina
+</td>
+<td style="text-align:right;">
+16.73
+</td>
+<td style="text-align:right;">
+7.55
+</td>
+<td style="text-align:right;">
+9.18
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Armenia
+</td>
+<td style="text-align:right;">
+12.07
+</td>
+<td style="text-align:right;">
+8.23
+</td>
+<td style="text-align:right;">
+3.84
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Australia
+</td>
+<td style="text-align:right;">
+12.14
+</td>
+<td style="text-align:right;">
+7.51
+</td>
+<td style="text-align:right;">
+4.63
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Austria
+</td>
+<td style="text-align:right;">
+8.74
+</td>
+<td style="text-align:right;">
+9.76
+</td>
+<td style="text-align:right;">
+-1.02
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The above table shows the new variable, “Population_Growth”, which subtracts the deathrate from the birthrate to determine whether the population is growing or diminishing and at what value. (Table 8a)</em></p>
+</div>
+<div id="beer-consumption" class="section level5">
+<h5>Beer Consumption</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% filter(Alcohol_Type == &quot;beer&quot;) %&gt;% 
+    summarise(n = n(), MeanBeerServings = mean(Servings), SD = sd(Servings), 
+        Min. = min(Servings), Max. = max(Servings), `25%` = quantile(Servings, 
+            probs = c(0.25)), `75%` = quantile(Servings, probs = c(0.75))) %&gt;% 
+    arrange(MeanBeerServings) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanBeerServings
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+18.80000
+</td>
+<td style="text-align:right;">
+20.24105
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+51
+</td>
+<td style="text-align:right;">
+6.00
+</td>
+<td style="text-align:right;">
+25.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+30.92857
+</td>
+<td style="text-align:right;">
+50.47843
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+192
+</td>
+<td style="text-align:right;">
+5.25
+</td>
+<td style="text-align:right;">
+37.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+37.85714
+</td>
+<td style="text-align:right;">
+37.35276
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+111
+</td>
+<td style="text-align:right;">
+5.00
+</td>
+<td style="text-align:right;">
+71.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+67.13953
+</td>
+<td style="text-align:right;">
+86.27271
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+376
+</td>
+<td style="text-align:right;">
+16.50
+</td>
+<td style="text-align:right;">
+85.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+68.36364
+</td>
+<td style="text-align:right;">
+66.32085
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+206
+</td>
+<td style="text-align:right;">
+21.00
+</td>
+<td style="text-align:right;">
+116.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+84.64286
+</td>
+<td style="text-align:right;">
+99.73242
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+306
+</td>
+<td style="text-align:right;">
+21.00
+</td>
+<td style="text-align:right;">
+98.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+150.00000
+</td>
+<td style="text-align:right;">
+78.45836
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+333
+</td>
+<td style="text-align:right;">
+93.00
+</td>
+<td style="text-align:right;">
+197.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+199.18182
+</td>
+<td style="text-align:right;">
+91.93146
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+346
+</td>
+<td style="text-align:right;">
+149.75
+</td>
+<td style="text-align:right;">
+260.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+240.00000
+</td>
+<td style="text-align:right;">
+86.11504
+</td>
+<td style="text-align:right;">
+89
+</td>
+<td style="text-align:right;">
+361
+</td>
+<td style="text-align:right;">
+213.00
+</td>
+<td style="text-align:right;">
+290.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+240.00000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+240
+</td>
+<td style="text-align:right;">
+240
+</td>
+<td style="text-align:right;">
+240.00
+</td>
+<td style="text-align:right;">
+240.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+282.66667
+</td>
+<td style="text-align:right;">
+59.51750
+</td>
+<td style="text-align:right;">
+224
+</td>
+<td style="text-align:right;">
+343
+</td>
+<td style="text-align:right;">
+252.50
+</td>
+<td style="text-align:right;">
+312.0
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for beer consumption per person (in servings) in each region, as well as the number of countries contributing to each region. (Table 9)</em></p>
+</div>
+<div id="spirits-consumption" class="section level5">
+<h5>Spirits Consumption</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% filter(Alcohol_Type == &quot;spirit&quot;) %&gt;% 
+    summarise(n = n(), MeanSpiritsServings = mean(Servings), 
+        SD = sd(Servings), Min. = min(Servings), Max. = max(Servings), 
+        `25%` = quantile(Servings, probs = c(0.25)), `75%` = quantile(Servings, 
+            probs = c(0.75))) %&gt;% arrange(MeanSpiritsServings) %&gt;% 
+    kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanSpiritsServings
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+2.60000
+</td>
+<td style="text-align:right;">
+2.607681
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+18.39535
+</td>
+<td style="text-align:right;">
+29.863291
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+152
+</td>
+<td style="text-align:right;">
+1.50
+</td>
+<td style="text-align:right;">
+23.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+44.28571
+</td>
+<td style="text-align:right;">
+48.391717
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+154
+</td>
+<td style="text-align:right;">
+7.75
+</td>
+<td style="text-align:right;">
+61.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+48.92857
+</td>
+<td style="text-align:right;">
+63.963288
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+254
+</td>
+<td style="text-align:right;">
+18.00
+</td>
+<td style="text-align:right;">
+57.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+63.66667
+</td>
+<td style="text-align:right;">
+88.788701
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+258
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+114.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+91.54545
+</td>
+<td style="text-align:right;">
+43.168250
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+157
+</td>
+<td style="text-align:right;">
+68.00
+</td>
+<td style="text-align:right;">
+124.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+122.00000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+122
+</td>
+<td style="text-align:right;">
+122
+</td>
+<td style="text-align:right;">
+122.00
+</td>
+<td style="text-align:right;">
+122.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+137.65517
+</td>
+<td style="text-align:right;">
+93.206482
+</td>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:right;">
+438
+</td>
+<td style="text-align:right;">
+76.00
+</td>
+<td style="text-align:right;">
+156.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+153.72727
+</td>
+<td style="text-align:right;">
+107.689453
+</td>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+373
+</td>
+<td style="text-align:right;">
+84.00
+</td>
+<td style="text-align:right;">
+231.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+154.09091
+</td>
+<td style="text-align:right;">
+83.598391
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+293
+</td>
+<td style="text-align:right;">
+104.50
+</td>
+<td style="text-align:right;">
+215.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+218.00000
+</td>
+<td style="text-align:right;">
+25.059928
+</td>
+<td style="text-align:right;">
+194
+</td>
+<td style="text-align:right;">
+244
+</td>
+<td style="text-align:right;">
+205.00
+</td>
+<td style="text-align:right;">
+230.0
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for spirits consumption per person (in servings) in each region, as well as the number of countries contributing to each region. (Table 10)</em></p>
+</div>
+<div id="wine-consumption" class="section level5">
+<h5>Wine Consumption</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% filter(Alcohol_Type == &quot;wine&quot;) %&gt;% 
+    summarise(n = n(), MeanWineServings = mean(Servings), SD = sd(Servings), 
+        Min. = min(Servings), Max. = max(Servings), `25%` = quantile(Servings, 
+            probs = c(0.25)), `75%` = quantile(Servings, probs = c(0.75))) %&gt;% 
+    arrange(MeanWineServings) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanWineServings
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+8.142857
+</td>
+<td style="text-align:right;">
+26.689484
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+123
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+9.000000
+</td>
+<td style="text-align:right;">
+8.544004
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+14.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+14.071429
+</td>
+<td style="text-align:right;">
+29.702277
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+113
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+<td style="text-align:right;">
+8.50
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+18.348837
+</td>
+<td style="text-align:right;">
+42.810704
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+233
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+11.50
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+29.818182
+</td>
+<td style="text-align:right;">
+42.364651
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+149
+</td>
+<td style="text-align:right;">
+7.00
+</td>
+<td style="text-align:right;">
+37.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+33.241379
+</td>
+<td style="text-align:right;">
+61.719212
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+221
+</td>
+<td style="text-align:right;">
+3.00
+</td>
+<td style="text-align:right;">
+26.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+38.928571
+</td>
+<td style="text-align:right;">
+68.628839
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+212
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+23.75
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+59.000000
+</td>
+<td style="text-align:right;">
+3.000000
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+57.50
+</td>
+<td style="text-align:right;">
+60.50
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+100.000000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+100.00
+</td>
+<td style="text-align:right;">
+100.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+140.818182
+</td>
+<td style="text-align:right;">
+73.826578
+</td>
+<td style="text-align:right;">
+54
+</td>
+<td style="text-align:right;">
+276
+</td>
+<td style="text-align:right;">
+90.00
+</td>
+<td style="text-align:right;">
+176.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+188.863636
+</td>
+<td style="text-align:right;">
+98.640422
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+370
+</td>
+<td style="text-align:right;">
+122.25
+</td>
+<td style="text-align:right;">
+262.50
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for wine consumption per person (in servings) in each region, as well as the number of countries contributing to each region. (Table 11)</em></p>
+</div>
+<div id="total-alcohol-consumption" class="section level5">
+<h5>Total Alcohol Consumption</h5>
+<pre class="r"><code>countrydata %&gt;% group_by(Region) %&gt;% summarise(n = n_distinct(Country), 
+    MeanTotalAlcohol = mean(total_litres_of_pure_alcohol), SD = sd(total_litres_of_pure_alcohol), 
+    Min. = min(total_litres_of_pure_alcohol), Max. = max(total_litres_of_pure_alcohol), 
+    `25%` = quantile(total_litres_of_pure_alcohol, probs = c(0.25)), 
+    `75%` = quantile(total_litres_of_pure_alcohol, probs = c(0.75))) %&gt;% 
+    arrange(MeanTotalAlcohol) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Region
+</th>
+<th style="text-align:right;">
+n
+</th>
+<th style="text-align:right;">
+MeanTotalAlcohol
+</th>
+<th style="text-align:right;">
+SD
+</th>
+<th style="text-align:right;">
+Min.
+</th>
+<th style="text-align:right;">
+Max.
+</th>
+<th style="text-align:right;">
+25%
+</th>
+<th style="text-align:right;">
+75%
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+NORTHERN AFRICA
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.540000
+</td>
+<td style="text-align:right;">
+0.4656792
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1.3
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+<td style="text-align:right;">
+0.7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NEAR EAST
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+1.592857
+</td>
+<td style="text-align:right;">
+2.0598831
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+8.2
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ASIA (EX. NEAR EAST)
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+2.180952
+</td>
+<td style="text-align:right;">
+2.4107861
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+<td style="text-align:right;">
+0.1
+</td>
+<td style="text-align:right;">
+4.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+OCEANIA
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+3.200000
+</td>
+<td style="text-align:right;">
+3.3478788
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+10.4
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+5.9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SUB-SAHARAN AFRICA
+</td>
+<td style="text-align:right;">
+43
+</td>
+<td style="text-align:right;">
+3.360465
+</td>
+<td style="text-align:right;">
+2.7499835
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+9.1
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+<td style="text-align:right;">
+5.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C.W. OF IND. STATES
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+4.927273
+</td>
+<td style="text-align:right;">
+3.9589513
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+14.4
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+6.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+LATIN AMER. &amp; CARIB
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+5.734483
+</td>
+<td style="text-align:right;">
+2.0509684
+</td>
+<td style="text-align:right;">
+2.2
+</td>
+<td style="text-align:right;">
+11.9
+</td>
+<td style="text-align:right;">
+4.2
+</td>
+<td style="text-align:right;">
+7.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+NORTHERN AMERICA
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+8.200000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+<td style="text-align:right;">
+8.2
+</td>
+<td style="text-align:right;">
+8.2
+</td>
+<td style="text-align:right;">
+8.2
+</td>
+<td style="text-align:right;">
+8.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+WESTERN EUROPE
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+8.718182
+</td>
+<td style="text-align:right;">
+3.3109101
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+12.4
+</td>
+<td style="text-align:right;">
+6.7
+</td>
+<td style="text-align:right;">
+11.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EASTERN EUROPE
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+9.572727
+</td>
+<td style="text-align:right;">
+2.5566424
+</td>
+<td style="text-align:right;">
+3.9
+</td>
+<td style="text-align:right;">
+11.8
+</td>
+<td style="text-align:right;">
+9.6
+</td>
+<td style="text-align:right;">
+11.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BALTICS
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+10.966667
+</td>
+<td style="text-align:right;">
+1.5132746
+</td>
+<td style="text-align:right;">
+9.5
+</td>
+<td style="text-align:right;">
+12.9
+</td>
+<td style="text-align:right;">
+9.5
+</td>
+<td style="text-align:right;">
+12.9
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for total alcohol consumption per person (in liters) in each region, as well as the number of countries contributing to each region. (Table 12)</em></p>
+<p>In making these tables, I wanted to get general information about population, area (in square miles), population density, infant mortality rate, GDP, literacy rate, birthrate, deathrate, beer consumption, spirits consumption, wine consumption, and total alcohol consumption in each of the 11 regions listed in the dataset. I found that Asia has the highest total population and total land mass, Western Europe has the highest mean population density and wine consumption per person, Northern America has the highest mean GDP (though there’s only one country listed under that region), the Baltics have the highest mean literacy rate, beer consumption per person, spirits consumption per person, and total alcohol consumption per person, and Sub-Saharan Africa has the highest mean infant mortality rate, birthrate, and deathrate, as well as the lowest mean GDP and literacy rate. (Tables 1-12)</p>
+<p>I was especially interested to see if high population density, low GDP, or low literacy rate had any noticeable correlation (able to clearly see without plotting the data), but I found that, at least at first glance, they didn’t seem to be strongly correlated (by country or by region). (Tables 3a-b, 5a-b, and 6a) Lastly, I made a new variable called “Population_Growth” by subtracting deathrate from birthrate, which shows whether the population of each country was growing or shrinking, and at what rate. (Table 8a)</p>
+</div>
+</div>
+<div id="visualizations" class="section level2">
+<h2>Visualizations</h2>
+<div id="correlation-heatmap" class="section level4">
+<h4>Correlation Heatmap</h4>
+<pre class="r"><code>correlationmatrix &lt;- countrydata %&gt;% select_if(is.numeric) %&gt;% 
+    cor(use = &quot;pair&quot;)
+tidycorrelation &lt;- correlationmatrix %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;Variable1&quot;) %&gt;% 
+    pivot_longer(-1, names_to = &quot;Variable2&quot;, values_to = &quot;Correlation&quot;)
+tidycorrelation %&gt;% head(12) %&gt;% kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, 
+    &quot;hover&quot;, &quot;condensed&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Variable1
+</th>
+<th style="text-align:left;">
+Variable2
+</th>
+<th style="text-align:right;">
+Correlation
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Area (sq. mi.)
+</td>
+<td style="text-align:right;">
+0.5353074
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Pop. Density (per sq. mi.)
+</td>
+<td style="text-align:right;">
+-0.0134601
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Infant mortality (per 1000 births)
+</td>
+<td style="text-align:right;">
+0.0059892
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+GDP ($ per capita)
+</td>
+<td style="text-align:right;">
+-0.0602288
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Literacy (%)
+</td>
+<td style="text-align:right;">
+-0.0443998
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Birthrate
+</td>
+<td style="text-align:right;">
+-0.0605478
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Deathrate
+</td>
+<td style="text-align:right;">
+-0.0633000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Population_Growth
+</td>
+<td style="text-align:right;">
+-0.0342905
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+total_litres_of_pure_alcohol
+</td>
+<td style="text-align:right;">
+-0.0374166
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:left;">
+Servings
+</td>
+<td style="text-align:right;">
+-0.0254484
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Area (sq. mi.)
+</td>
+<td style="text-align:left;">
+Population
+</td>
+<td style="text-align:right;">
+0.5353074
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tidycorrelation %&gt;% ggplot(aes(Variable1, Variable2, fill = Correlation)) + 
+    geom_tile() + theme_dark() + geom_text(aes(label = round(Correlation, 
+    1))) + labs(x = NULL, y = NULL, title = &quot;Correlations in Country Data&quot;) + 
+    scale_fill_gradient2(low = &quot;#0C6291&quot;, mid = &quot;#FBFEF9&quot;, high = &quot;#A63446&quot;, 
+        limits = c(-1, 1)) + theme(axis.text.x = element_text(angle = 45, 
+    hjust = 1), plot.title = element_text(face = &quot;bold.italic&quot;))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>This correlation heatmap shows that there is not a lot of significant correlation between many of the variables. Some of the most correlated were Birthrate, Literacy, and Infant Mortality (each had a net 0.8 correlation). This shows that as Literacy increased, Birthrate and Infant Mortality decreased. Two other fairly correlated variables were Servings and Total Liters of Alcohol (0.7 correlation). This shows that as the amount of servings per person went up, the amount of total alcohol consumption per person went up, which makes a lot of logical sense (though it’s not an incredibly shocking or interesting correlation). Area and population seemed to be the least correlated with all the other variables, except each other, and even then the correlation score was only 0.5.</p>
+</div>
+<div id="interactions-between-literacy-rate-birthrate-infant-mortality-and-gdp" class="section level4">
+<h4>Interactions Between Literacy Rate, Birthrate, Infant Mortality, and GDP</h4>
+<pre class="r"><code>countrydata %&gt;% ggplot(aes(x = Birthrate, y = `Literacy (%)`)) + 
+    geom_point(aes(color = `Infant mortality (per 1000 births)`, 
+        size = `GDP ($ per capita)`)) + scale_color_gradient(low = &quot;purple4&quot;, 
+    high = &quot;thistle2&quot;) + labs(title = &quot;Interactions Between Literacy Rate, Birthrate, Infant Mortality, and GDP&quot;) + 
+    theme(plot.title = element_text(face = &quot;bold.italic&quot;, size = 10)) + 
+    scale_x_continuous(limits = c(5, 55), n.breaks = 10)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" />
+Going of of what I found in the heatmap, I wanted a better visualization of the ways that Literacy, Birthrate, and Infant Mortality were related, and decided to include GDP in this visualization as well. As the plot shows, Literacy and Birthrate have a pretty clear negative correlation. Literacy and Infant Mortality also tend to have a negative correlation, since the upper left of the plot is mostly dark dots and the lower right of the plot is lighter dots (generally). This plot also shows that GDP and Literacy are somewhat correlated, since the dots in the upper left are generally larger than the dots in the bottom right (this means there is a positive correlation between the two, though not as strong as there is between the other three variables). GDP also relates to Birthrate and Infant Mortality, both with negative correlations.</p>
+</div>
+<div id="servings-of-beer-spirits-and-wine-by-region" class="section level4">
+<h4>Servings of Beer, Spirits, and Wine by Region</h4>
+<pre class="r"><code>countrydata %&gt;% ggplot(aes(x = Alcohol_Type, y = Servings, fill = Region)) + 
+    geom_bar(stat = &quot;summary&quot;, fun = mean) + scale_fill_manual(values = c(&quot;mediumorchid3&quot;, 
+    &quot;plum2&quot;, &quot;palevioletred2&quot;, &quot;salmon2&quot;, &quot;orangered3&quot;, &quot;chocolate3&quot;, 
+    &quot;gold1&quot;, &quot;forestgreen&quot;, &quot;aquamarine2&quot;, &quot;turquoise3&quot;, &quot;dodgerblue1&quot;)) + 
+    labs(x = &quot;Alcohol Type&quot;, title = &quot;Servings of Beer, Spirits, and Wine by Region&quot;) + 
+    theme(plot.title = element_text(face = &quot;bold.italic&quot;, size = 10))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" />
+This graph shows a variety of interesting data on alcohol as it relates to region. Above, you can see that, in terms of servings, beer is has the highest consumption when all region are added, and wine the lowest. You can also see that the Baltics have the highest mean beer and spirit consumption rates, while Western Europe has the highest mean wine consumption rates. You can also see that some of the smallest consumers of alcohol across the board are Asia/Near East and Africa (grouped regions), while some of the largest consumers of alcohol are Europe and the Americas (grouped regions).</p>
+</div>
+</div>
+<div id="k-means-clustering" class="section level2">
+<h2>k-means clustering</h2>
+<pre class="r"><code>library(cluster)
+
+cluster_country_data &lt;- countrydata %&gt;% filter(!is.na(Population_Growth)) %&gt;% 
+    select(Servings, total_litres_of_pure_alcohol, Population_Growth)</code></pre>
+<p><em>In this first step, I processed the data, removing the NA values that were present in the population growth variable set, and created a new dataset called cluster_country_data to use from here on out.</em></p>
+<pre class="r"><code>sil_width &lt;- vector()
+for (i in 2:10) {
+    kms &lt;- kmeans(cluster_country_data, centers = i)
+    sil &lt;- silhouette(kms$cluster, dist(cluster_country_data))
+    sil_width[i] &lt;- mean(sil[, 3])
+}
+ggplot() + geom_line(aes(x = 1:10, y = sil_width)) + scale_x_continuous(name = &quot;k&quot;, 
+    breaks = 1:10)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" />
+<em>I then determined the amount of clusters I was going to use by computing the silhouette width with kmeans and plotting it. This showed that 2 clusters was the ideal amount.</em></p>
+<pre class="r"><code>kmeanscountry &lt;- cluster_country_data %&gt;% scale() %&gt;% kmeans(2)
+
+kmeansclustcountry &lt;- cluster_country_data %&gt;% as.data.frame %&gt;% 
+    mutate(cluster = as.factor(kmeanscountry$cluster))
+kmeansclustcountry %&gt;% head()</code></pre>
+<pre><code>##   Servings total_litres_of_pure_alcohol Population_Growth cluster
+## 1        0                          0.0             26.26       2
+## 2        0                          0.0             26.26       2
+## 3        0                          0.0             26.26       2
+## 4       89                          4.9              9.89       2
+## 5      132                          4.9              9.89       1
+## 6       54                          4.9              9.89       2</code></pre>
+<pre class="r"><code>library(GGally)
+ggpairs(kmeansclustcountry, columns = 1:3, aes(color = cluster))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" />
+<em>Then, I scaled the dataset with the ideal amount of clusters. Lastly, I saved the cluster assignment, and visualized the final cluster assignment using ggpairs, which shows how the 3 variables (Servings, Total Alcohol Consumption, and Population Growth relate to each other in the two clusters.</em></p>
+<p>This joint table shows the cluster data in regards to the Servings, Total Liters of Alcohol, and Population Growth. Cluster 1 (red) is low in servings and total liters of alcohol, and high in population growth. Cluster 2 (blue) is very widely spread in servings, medium-high in total liters of alcohol, and low in population growth. This joint chart also shows that Servings and Total Alcohol have a fairly strong positive correlation, Servings and Population Growth have a medium negative correlation, and Population Growth and Total Alcohol have a somewhat strong negative correlation.</p>
+<p>Based on the graph used to determine the ideal amount of clusters, the average silhouette width is around .7. This means that there is a reasonable goodness of fit in the data (not exactly ideal, but essentially good enough).</p>
+<P style="page-break-before: always">
+<div style="page-break-after: always;"></div>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

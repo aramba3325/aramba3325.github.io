@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Alec Ramba" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 2: Modeling, Testing, and Predicting</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">Project 2: Modeling, Testing, and Predicting</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+<script src="../../rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="../../rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
+
+
+<div id="data" class="section level2">
+<h2>Data</h2>
+<pre class="r"><code>library(readr)
+library(kableExtra)
+election_turnout &lt;- read_csv(&quot;election_turnout.csv&quot;, 
+    col_types = cols(X1 = col_skip(), year = col_skip()))
+election_turnout %&gt;%  
+  head() %&gt;% kbl() %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-responsive" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+state
+</th>
+<th style="text-align:left;">
+region
+</th>
+<th style="text-align:left;">
+division
+</th>
+<th style="text-align:right;">
+turnoutho
+</th>
+<th style="text-align:right;">
+perhsed
+</th>
+<th style="text-align:right;">
+percoled
+</th>
+<th style="text-align:right;">
+gdppercap
+</th>
+<th style="text-align:right;">
+ss
+</th>
+<th style="text-align:right;">
+trumpw
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Alabama
+</td>
+<td style="text-align:left;">
+South
+</td>
+<td style="text-align:left;">
+East South Central
+</td>
+<td style="text-align:right;">
+59.0
+</td>
+<td style="text-align:right;">
+84.3
+</td>
+<td style="text-align:right;">
+23.5
+</td>
+<td style="text-align:right;">
+42663
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Alaska
+</td>
+<td style="text-align:left;">
+West
+</td>
+<td style="text-align:left;">
+Pacific
+</td>
+<td style="text-align:right;">
+61.3
+</td>
+<td style="text-align:right;">
+92.1
+</td>
+<td style="text-align:right;">
+28.0
+</td>
+<td style="text-align:right;">
+81801
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arizona
+</td>
+<td style="text-align:left;">
+West
+</td>
+<td style="text-align:left;">
+Mountain
+</td>
+<td style="text-align:right;">
+55.0
+</td>
+<td style="text-align:right;">
+86.0
+</td>
+<td style="text-align:right;">
+27.5
+</td>
+<td style="text-align:right;">
+43269
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arkansas
+</td>
+<td style="text-align:left;">
+South
+</td>
+<td style="text-align:left;">
+West South Central
+</td>
+<td style="text-align:right;">
+52.8
+</td>
+<td style="text-align:right;">
+84.8
+</td>
+<td style="text-align:right;">
+21.1
+</td>
+<td style="text-align:right;">
+41129
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+California
+</td>
+<td style="text-align:left;">
+West
+</td>
+<td style="text-align:left;">
+Pacific
+</td>
+<td style="text-align:right;">
+56.7
+</td>
+<td style="text-align:right;">
+81.8
+</td>
+<td style="text-align:right;">
+31.4
+</td>
+<td style="text-align:right;">
+61924
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Colorado
+</td>
+<td style="text-align:left;">
+West
+</td>
+<td style="text-align:left;">
+Mountain
+</td>
+<td style="text-align:right;">
+70.1
+</td>
+<td style="text-align:right;">
+90.7
+</td>
+<td style="text-align:right;">
+38.1
+</td>
+<td style="text-align:right;">
+58009
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p><em>My dataset looks at GDP per capita, high school and college gradution percentages, and voter turnout percent for every state (and the District of Columbia) in 2016, as well as what region it’s in, whether it’s a swing state, and whether Trump won the state vote (the main measurement of the data). There are 51 observations (the states + Washington DC).</em></p>
+</div>
+<div id="manovaanova" class="section level2">
+<h2>MANOVA/ANOVA</h2>
+<pre class="r"><code>library(rstatix)
+library(kableExtra)
+
+man1&lt;-manova(cbind(turnoutho, perhsed, percoled, gdppercap)~region, data=election_turnout)
+summary(man1) </code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## region 3 0.72423 3.6597 12 138 8.812e-05 ***
+## Residuals 47
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(man1)</code></pre>
+<pre><code>## Response turnoutho :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## region 3 341.89 113.962 3.5028 0.02247 *
+## Residuals 47 1529.12 32.534
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response perhsed :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## region 3 169.08 56.360 8.836 9.413e-05 ***
+## Residuals 47 299.79 6.378
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response percoled :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## region 3 273.93 91.311 2.7495 0.05314 .
+## Residuals 47 1560.87 33.210
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response gdppercap :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## region 3 1.2677e+08 42255312 0.0933 0.9633
+## Residuals 47 2.1275e+10 452669510</code></pre>
+<pre class="r"><code>election_turnout %&gt;% group_by(region) %&gt;% summarize(&quot;Mean Percent Turnout&quot; = mean(turnoutho),&quot;Mean Percent HS Edu&quot; = mean(perhsed), &quot;Mean Percent College Edu&quot; = mean(percoled), &quot;Mean GDP Per Capita&quot; = mean(gdppercap))%&gt;% 
+  kbl() %&gt;% kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-responsive" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+region
+</th>
+<th style="text-align:right;">
+Mean Percent Turnout
+</th>
+<th style="text-align:right;">
+Mean Percent HS Edu
+</th>
+<th style="text-align:right;">
+Mean Percent College Edu
+</th>
+<th style="text-align:right;">
+Mean GDP Per Capita
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+North Central
+</td>
+<td style="text-align:right;">
+63.31667
+</td>
+<td style="text-align:right;">
+90.10000
+</td>
+<td style="text-align:right;">
+28.30833
+</td>
+<td style="text-align:right;">
+54198.83
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Northeast
+</td>
+<td style="text-align:right;">
+64.61111
+</td>
+<td style="text-align:right;">
+89.44444
+</td>
+<td style="text-align:right;">
+34.38889
+</td>
+<td style="text-align:right;">
+58683.11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+South
+</td>
+<td style="text-align:right;">
+58.51176
+</td>
+<td style="text-align:right;">
+85.72941
+</td>
+<td style="text-align:right;">
+27.94118
+</td>
+<td style="text-align:right;">
+56252.18
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+West
+</td>
+<td style="text-align:right;">
+58.91538
+</td>
+<td style="text-align:right;">
+88.99231
+</td>
+<td style="text-align:right;">
+29.30769
+</td>
+<td style="text-align:right;">
+54632.31
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>pairwise.t.test(election_turnout$turnoutho, election_turnout$region, p.adj=&quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: election_turnout$turnoutho and
+election_turnout$region
+##
+## North Central Northeast South
+## Northeast 0.609 - -
+## South 0.030 0.013 -
+## West 0.060 0.026 0.849
+##
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(election_turnout$perhsed, election_turnout$region, p.adj=&quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: election_turnout$perhsed and
+election_turnout$region
+##
+## North Central Northeast South
+## Northeast 0.55892 - -
+## South 3.3e-05 0.00084 -
+## West 0.27883 0.68159 0.00101
+##
+## P value adjustment method: none</code></pre>
+<p><em>The MANOVA came back significant, so I performed 4 univariate ANOVAs. I found that only the variables “turnoutho” and “perhsed” had significant mean differences across the groups, so I performed post-hoc t tests on these.</em></p>
+<pre class="r"><code>1-(.95^17) #probability of at least one type I error</code></pre>
+<pre><code>## [1] 0.5818797</code></pre>
+<pre class="r"><code>.05/17 #bonferroni α</code></pre>
+<pre><code>## [1] 0.002941176</code></pre>
+<p><em>Overall, I performed 17 tests, so the probability of at least one Type I error was 0.5819, so I adjusted using bonferroni correction, and the new α was equal to 0.0029. After this correction, I found that the South differed significantly from the other 3 regions in “perhsed”. It’s pretty unlikely that the MANOVA assumptions for normal distribution and equal variance were met since the sample size for each region is quite small.</em></p>
+</div>
+<div id="randomization-test" class="section level2">
+<h2>Randomization Test</h2>
+<p><em>H0: With regards to whether Trump won the state or not (“trumpw”), the means of each region are equal</em>
+<em>HA: The means of each region are different</em></p>
+<pre class="r"><code>summary(aov(trumpw~region, data=election_turnout))</code></pre>
+<pre><code>## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## region 3 3.508 1.1693 6.213 0.00121 **
+## Residuals 47 8.845 0.1882
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>set.seed(1234)
+obs_F &lt;- 6.213 
+Fs &lt;- replicate(5000,{ 
+new &lt;- election_turnout %&gt;% mutate(trumpw=sample(trumpw)) 
+
+SSW &lt;- new %&gt;% group_by(region) %&gt;% summarize(SSW=sum((trumpw-mean(trumpw))^2)) %&gt;%
+summarize(sum(SSW)) %&gt;% pull
+SSB &lt;- new %&gt;% mutate(mean=mean(trumpw)) %&gt;% group_by(region) %&gt;%
+mutate(groupmean=mean(trumpw)) %&gt;% summarize(SSB=sum((mean-groupmean)^2)) %&gt;%
+summarize(sum(SSB))%&gt;%pull
+(SSB/487)/(SSW/273) 
+})
+hist(Fs, prob=T); abline(v = obs_F, col=&quot;red&quot;,add=T)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>mean(Fs&gt;obs_F)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p><em>The p-value is effectively 0, meaning none of the 5000 F statistics generated under the null hypothesis were bigger than the actual F statistic (6.213). Therfore, the null hypothesis can be rejected (i.e. the groups differ).</em></p>
+</div>
+<div id="linear-regression" class="section level2">
+<h2>Linear Regression</h2>
+<pre class="r"><code>library(sandwich); library(lmtest)
+election_turnout$perhsed_c &lt;- election_turnout$perhsed - mean(election_turnout$perhsed)
+projfit &lt;- lm(gdppercap~region*perhsed_c, data = election_turnout)
+summary(projfit)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = gdppercap ~ region * perhsed_c, data =
+election_turnout)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -23824 -8003 -3349 4360 98018
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 50226 9012 5.573 1.52e-06 ***
+## regionNortheast 11344 11620 0.976 0.3344
+## regionSouth 24989 11526 2.168 0.0357 *
+## regionWest 3612 10561 0.342 0.7340
+## perhsed_c 2142 3809 0.562 0.5768
+## regionNortheast:perhsed_c -4549 4785 -0.951 0.3471
+## regionSouth:perhsed_c 5396 4378 1.232 0.2245
+## regionWest:perhsed_c -1079 4127 -0.261 0.7950
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 19380 on 43 degrees of freedom
+## Multiple R-squared: 0.2452, Adjusted R-squared: 0.1223
+## F-statistic: 1.995 on 7 and 43 DF, p-value: 0.0779</code></pre>
+<p><em>Intercept: 50226.4 is the mean/predicted GDP per capita for the North Central region at an average percent high school education.</em>
+<em>Controlling for percent high school education, GDP per capita in the Northeast region is $11,344 higher than in the North Central region on average.</em>
+<em>Controlling for percent high school education, GDP per capita in the South region is $24,989 higher than in the North Central region on average.</em>
+<em>Controlling for percent high school education, GDP per capita in the West region is $3,612 higher than in the North Central region on average.</em>
+<em>Controlling for region, GDP per capita rises by $2,141.6 for every 1% increase in high school education on average.</em>
+<em>The slope for percent high school education on GDP per capita is 4549 lower for the Northeast region compared to the North Central region.</em>
+<em>The slope for percent high school education on GDP per capita is 5396 higher for the South region compared to the North Central region.</em>
+<em>The slope for percent high school education on GDP per capita is 1079 lower for the West region compared to the North Central region.</em></p>
+<pre class="r"><code>ggplot(election_turnout, aes(perhsed_c,gdppercap, color = region)) + 
+  geom_smooth(method = &quot;lm&quot;, se = F, fullrange = T) +
+  geom_point() + 
+  geom_vline(xintercept=0,lty=2) +
+  labs(x = &quot;Mean Percent HS Education&quot;, y = &quot;GDP Per Capita&quot;, title = &quot;Interaction Between Region and Mean % HS Education on GDP Per Capita&quot;, color = &quot;Region&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" />
+<em>Based on the adjusted r-squared of the model, proportionally about 0.1223 of the variance in the outcome is explained by the model.</em></p>
+<pre class="r"><code>resids &lt;- projfit$residuals
+fitvals &lt;- projfit$fitted.values
+ggplot() + 
+  geom_point(aes(fitvals,resids)) + 
+  geom_hline(yintercept=0, color=&#39;red&#39;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>par(mfrow=c(1,2)); hist(resids); qqnorm(resids); qqline(resids, col=&#39;red&#39;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-7-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bptest(projfit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  projfit
+## BP = 11.078, df = 7, p-value = 0.1353</code></pre>
+<pre class="r"><code>coeftest(projfit, vcov = vcovHC(projfit))</code></pre>
+<pre><code>##
+## t test of coefficients:
+##
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 50226.4 3579.9 14.0301 &lt; 2e-16 ***
+## regionNortheast 11343.5 6228.4 1.8213 0.07553 .
+## regionSouth 24988.6 22902.0 1.0911 0.28130
+## regionWest 3611.8 5480.0 0.6591 0.51335
+## perhsed_c 2141.6 1617.9 1.3237 0.19261
+## regionNortheast:perhsed_c -4548.6 2472.7 -1.8395 0.07275
+.
+## regionSouth:perhsed_c 5396.3 6382.0 0.8455 0.40249
+## regionWest:perhsed_c -1078.9 2233.3 -0.4831 0.63149
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<p><em>None of the results came back significant after the robust SEs (before, the South had a significant difference in GDP per capita). This means that region doesn’t significantly effect GDP per capita, and that the interaction between region and percent high school education is also not significant for GDP per capita.</em></p>
+</div>
+<div id="bootsrapped-regression" class="section level2">
+<h2>Bootsrapped Regression</h2>
+<pre class="r"><code>projfit &lt;- lm(gdppercap~region*perhsed_c, data = election_turnout)
+resids&lt;-projfit$residuals
+fitted&lt;-projfit$fitted.values
+
+resid_resamp&lt;-replicate(5000,{
+new_resids&lt;-sample(resids,replace=TRUE)
+newdat&lt;-election_turnout
+newdat$new_y&lt;-fitted+new_resids
+projfitbs&lt;-lm(new_y ~ region*perhsed_c, data = newdat)
+coef(projfitbs)
+})
+
+resid_resamp%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>## (Intercept) regionNortheast regionSouth regionWest
+perhsed_c regionNortheast:perhsed_c
+## 1 8330.811 10734.55 10686.07 9837.625 3441.702 4367.852
+## regionSouth:perhsed_c regionWest:perhsed_c
+## 1 3993.44 3735.244</code></pre>
+<p><em>Compared to the original SEs, the bootstrapped SEs were lower (but not by a whole lot), meaning the p-values would also be lower, but probably not enough to make them significant. Compared to the robust SEs, all of the bootstrapped SEs except for the South and the South interaction were higher (again, not by a whole lot), meaning p-values would be a bit higher for all but the two mentioned.</em></p>
+</div>
+<div id="logistic-regression" class="section level2">
+<h2>Logistic Regression</h2>
+<pre class="r"><code>projfit2 &lt;- glm(trumpw~region + percoled,data=election_turnout,family=binomial(link=&quot;logit&quot;))
+coeftest(projfit2)</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) 18.46279 5.81659 3.1742 0.001503 **
+## regionNortheast -2.38233 1.55665 -1.5304 0.125912
+## regionSouth -0.68558 1.43910 -0.4764 0.633795
+## regionWest -2.08336 1.22311 -1.7033 0.088508 .
+## percoled -0.57109 0.18838 -3.0317 0.002432 **
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<p><em>Controlling for percent college education, the Northeast and North Central regions are not significantly different.</em>
+<em>Controlling for percent college education, the South and North Central regions are not significantly different.</em>
+<em>Controlling for percent college education, the West and North Central regions are not significantly different.</em></p>
+<pre class="r"><code>exp(-0.57109)</code></pre>
+<pre><code>## [1] 0.5649094</code></pre>
+<p><em>Controlling for region, for every 1% increase in college education, the odds of Trump winning change by a factor of 0.5649094.</em></p>
+<pre class="r"><code>probs&lt;-predict(projfit2,type=&quot;response&quot;) 
+table(predict=as.numeric(probs&gt;.5),truth=election_turnout$trumpw)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict  0  1 Sum
+##     0   17  3  20
+##     1    4 27  31
+##     Sum 21 30  51</code></pre>
+<pre class="r"><code>(17+27)/51 #accuracy</code></pre>
+<pre><code>## [1] 0.8627451</code></pre>
+<pre class="r"><code>27/30 #sensitivity</code></pre>
+<pre><code>## [1] 0.9</code></pre>
+<pre class="r"><code>17/21 #specificity</code></pre>
+<pre><code>## [1] 0.8095238</code></pre>
+<pre class="r"><code>27/31 #precision</code></pre>
+<pre><code>## [1] 0.8709677</code></pre>
+<pre class="r"><code>library(plotROC)
+ROCplot&lt;-ggplot(election_turnout)+geom_roc(aes(d=trumpw,m=probs), n.cuts=0)+
+geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.9396825</code></pre>
+<p><em>The model was ~86% accurate (0.8627451). The sensitivity, which is the probability of predicting trump winning if he actually won, was 0.9. The specificity, which is the probability of predicting trump losing if he actually lost, was 0.8095238. The precision, which is the proportion of predicted trump wins that were actually true, was 0.8709677. The AUC was 0.9396825, meaning the model performed quite well.</em></p>
+<pre class="r"><code>logit&lt;-predict(projfit2,type=&quot;link&quot;) 
+election_turnout %&gt;% 
+  mutate(y=as.factor(trumpw)) %&gt;% 
+  ggplot(aes(logit, fill=y)) + 
+  geom_density(alpha = 0.6, color = c(&quot;grey75&quot;)) +
+  labs(fill = &quot;Trump Won State&quot;) +
+  scale_fill_manual(values = c(&quot;deepskyblue&quot;, &quot;indianred1&quot;)) </code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-12-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ROCplot</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-12-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.9396825</code></pre>
+<p><em>Again, the model performed really well, with an AUC of 0.9396825.</em></p>
+</div>
+<div id="logistic-regression-with-more-variables" class="section level2">
+<h2>Logistic Regression with More Variables</h2>
+<pre class="r"><code>election_turnout_orig&lt;- election_turnout[ , 4:9] 
+projfit3 &lt;- glm(trumpw~.,data=election_turnout_orig,family=&quot;binomial&quot;)
+coeftest(projfit3)</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) -7.2300e-01 1.3265e+01 -0.0545 0.956534
+## turnoutho -2.9405e-02 8.4325e-02 -0.3487 0.727308
+## perhsed 2.5532e-01 1.7261e-01 1.4792 0.139096
+## percoled -6.6479e-01 2.0785e-01 -3.1984 0.001382 **
+## gdppercap -4.3784e-06 5.3186e-05 -0.0823 0.934391
+## ss 1.4668e-01 1.2548e+00 0.1169 0.906941
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>prob &lt;- predict(projfit3,type=&quot;response&quot;)
+
+class_diag&lt;-function(prob,truth){
+  tab&lt;-table(factor(prob&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  ord&lt;-order(prob, decreasing=TRUE)
+  prob &lt;- prob[ord]; truth &lt;- truth[ord]
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  dup&lt;-c(prob[-1]&gt;=prob[-length(prob)], FALSE)
+  TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  n &lt;- length(TPR)
+  auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+  data.frame(acc,sens,spec,ppv,auc)
+}
+class_diag(prob,election_turnout_orig$trumpw)</code></pre>
+<pre><code>##         acc      sens      spec   ppv       auc
+## 1 0.8823529 0.9333333 0.8095238 0.875 0.9238095</code></pre>
+<p><em>Using all the rest of the variables, the accuracy of the model is 0.8823529, the probability of Trump winning if he actually won is 0.9333333 (sensitivity), the probability of Trump losing if he actually lost is 0.8095238 (specificity), the proportion of predicted Trump wins that actually happened was 0.875 (PPV), and the AUC was 0.9238095, meaning the model performed really well.</em></p>
+<pre class="r"><code>set.seed(1234)
+k=10
+
+data&lt;-election_turnout_orig[sample(nrow(election_turnout_orig)),] 
+folds&lt;-cut(seq(1:nrow(data)),breaks=k,labels=F) 
+diags&lt;-NULL
+for(i in 1:k){
+train&lt;-data[folds!=i,]
+test&lt;-data[folds==i,]
+truth&lt;-test$trumpw 
+projfit_k&lt;-glm(trumpw~.,data=train,family=&quot;binomial&quot;)
+prob2&lt;-predict(projfit_k,newdata = test,type=&quot;response&quot;)
+diags&lt;-rbind(diags,class_diag(prob2,truth))
+}
+
+summarize_all(diags,mean) </code></pre>
+<pre><code>##         acc      sens  spec       ppv       auc
+## 1 0.8033333 0.8333333 0.825 0.8666667 0.8333333</code></pre>
+<p><em>This time, all of the classification diagnostics were lower than the original except for specificity, meaning the out-of-sample metrics weren’t as good as the in-sample metrics.</em></p>
+<pre class="r"><code>library(glmnet)
+
+y &lt;- as.matrix(election_turnout_orig$trumpw)
+x &lt;- model.matrix(trumpw~ -1+., data=election_turnout_orig) 
+head(x); x&lt;-scale(x) </code></pre>
+<pre><code>##   turnoutho perhsed percoled gdppercap ss
+## 1      59.0    84.3     23.5     42663  0
+## 2      61.3    92.1     28.0     81801  0
+## 3      55.0    86.0     27.5     43269  0
+## 4      52.8    84.8     21.1     41129  0
+## 5      56.7    81.8     31.4     61924  0
+## 6      70.1    90.7     38.1     58009  1</code></pre>
+<pre class="r"><code>cv &lt;-cv.glmnet(x,y,family=&#39;binomial&#39;)
+lasso&lt;-glmnet(x,y,family=&#39;binomial&#39;,lambda=cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 6 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                     s0
+## (Intercept)  0.3684107
+## turnoutho    .        
+## perhsed      .        
+## percoled    -1.0753833
+## gdppercap    .        
+## ss           .</code></pre>
+<p><em>Only the Percent College Education variable was retained after the LASSO.</em></p>
+<pre class="r"><code>lasso_dat &lt;- election_turnout_orig %&gt;% 
+  select(percoled, trumpw)
+k=7
+data2&lt;-lasso_dat[sample(nrow(lasso_dat)),] 
+folds&lt;-cut(seq(1:nrow(data2)),breaks=k,labels=F) 
+diags&lt;-NULL
+for(i in 1:k){
+train&lt;-data2[folds!=i,]
+test&lt;-data2[folds==i,]
+truth2&lt;-test$trumpw 
+projfit_k2&lt;-glm(trumpw~.,data=train,family=&quot;binomial&quot;)
+prob3&lt;-predict(projfit_k2,newdata = test,type=&quot;response&quot;)
+diags&lt;-rbind(diags,class_diag(prob3,truth2))
+}
+
+summarize_all(diags,mean) </code></pre>
+<pre><code>##         acc      sens      spec       ppv  auc
+## 1 0.8622449 0.9234694 0.8047619 0.8714286 0.95</code></pre>
+<p><em>Using only the “percoled”, the model had higher metrics except for PPV, and had a AUC of 0.952381, meaning overall it performed better than the logistic regression above.</em></p>
+<p>…</p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

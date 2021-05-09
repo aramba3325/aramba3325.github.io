@@ -1,0 +1,296 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS348 - Alec Ramba, adr3325"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+```
+
+## Data
+
+```{r}
+library(readr)
+library(kableExtra)
+election_turnout <- read_csv("election_turnout.csv", 
+    col_types = cols(X1 = col_skip(), year = col_skip()))
+election_turnout %>%  
+  head() %>% kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
+```
+
+## Introduction
+*My dataset looks at GDP per capita, high school and college gradution percentages, and voter turnout percent for every state (and the District of Columbia) in 2016, as well as what region it's in, whether it's a swing state, and whether Trump won the state vote (the main measurement of the data). There are 51 observations (the states + Washington DC).*
+
+## MANOVA/ANOVA
+
+``` {r}
+library(rstatix)
+library(kableExtra)
+
+man1<-manova(cbind(turnoutho, perhsed, percoled, gdppercap)~region, data=election_turnout)
+summary(man1) 
+
+summary.aov(man1)
+
+election_turnout %>% group_by(region) %>% summarize("Mean Percent Turnout" = mean(turnoutho),"Mean Percent HS Edu" = mean(perhsed), "Mean Percent College Edu" = mean(percoled), "Mean GDP Per Capita" = mean(gdppercap))%>% 
+  kbl() %>% kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
+
+
+pairwise.t.test(election_turnout$turnoutho, election_turnout$region, p.adj="none")
+pairwise.t.test(election_turnout$perhsed, election_turnout$region, p.adj="none")
+```
+*The MANOVA came back significant, so I performed 4 univariate ANOVAs. I found that only the variables "turnoutho" and "perhsed" had significant mean differences across the groups, so I performed post-hoc t tests on these.*
+
+```{r}
+1-(.95^17) #probability of at least one type I error
+.05/17 #bonferroni α
+```
+*Overall, I performed 17 tests, so the probability of at least one Type I error was 0.5819, so I adjusted using bonferroni correction, and the new α was equal to 0.0029. After this correction, I found that the South differed significantly from the other 3 regions in "perhsed". It's pretty unlikely that the MANOVA assumptions for normal distribution and equal variance were met since the sample size for each region is quite small.*
+
+
+## Randomization Test
+
+*H0: With regards to whether Trump won the state or not ("trumpw"), the means of each region are equal*
+*HA: The means of each region are different*
+
+```{r}
+summary(aov(trumpw~region, data=election_turnout))
+
+set.seed(1234)
+obs_F <- 6.213 
+Fs <- replicate(5000,{ 
+new <- election_turnout %>% mutate(trumpw=sample(trumpw)) 
+
+SSW <- new %>% group_by(region) %>% summarize(SSW=sum((trumpw-mean(trumpw))^2)) %>%
+summarize(sum(SSW)) %>% pull
+SSB <- new %>% mutate(mean=mean(trumpw)) %>% group_by(region) %>%
+mutate(groupmean=mean(trumpw)) %>% summarize(SSB=sum((mean-groupmean)^2)) %>%
+summarize(sum(SSB))%>%pull
+(SSB/487)/(SSW/273) 
+})
+hist(Fs, prob=T); abline(v = obs_F, col="red",add=T)
+mean(Fs>obs_F)
+```
+*The p-value is effectively 0, meaning none of the 5000 F statistics generated under the null hypothesis were bigger than the actual F statistic (6.213). Therfore, the null hypothesis can be rejected (i.e. the groups differ).*
+
+
+## Linear Regression
+    
+```{r}
+library(sandwich); library(lmtest)
+election_turnout$perhsed_c <- election_turnout$perhsed - mean(election_turnout$perhsed)
+projfit <- lm(gdppercap~region*perhsed_c, data = election_turnout)
+summary(projfit)
+```
+*Intercept: 50226.4 is the mean/predicted GDP per capita for the North Central region at an average percent high school education.*
+*Controlling for percent high school education, GDP per capita in the Northeast region is $11,344 higher than in the North Central region on average.*
+*Controlling for percent high school education, GDP per capita in the South region is $24,989 higher than in the North Central region on average.*
+*Controlling for percent high school education, GDP per capita in the West region is $3,612 higher than in the North Central region on average.*
+*Controlling for region, GDP per capita rises by $2,141.6 for every 1% increase in high school education on average.*
+*The slope for percent high school education on GDP per capita is 4549 lower for the Northeast region compared to the North Central region.*
+*The slope for percent high school education on GDP per capita is 5396 higher for the South region compared to the North Central region.*
+*The slope for percent high school education on GDP per capita is 1079 lower for the West region compared to the North Central region.*
+
+```{r}
+ggplot(election_turnout, aes(perhsed_c,gdppercap, color = region)) + 
+  geom_smooth(method = "lm", se = F, fullrange = T) +
+  geom_point() + 
+  geom_vline(xintercept=0,lty=2) +
+  labs(x = "Mean Percent HS Education", y = "GDP Per Capita", title = "Interaction Between Region and Mean % HS Education on GDP Per Capita", color = "Region")
+```
+*Based on the adjusted r-squared of the model, proportionally about 0.1223 of the variance in the outcome is explained by the model.*
+
+
+```{r}
+resids <- projfit$residuals
+fitvals <- projfit$fitted.values
+ggplot() + 
+  geom_point(aes(fitvals,resids)) + 
+  geom_hline(yintercept=0, color='red')
+par(mfrow=c(1,2)); hist(resids); qqnorm(resids); qqline(resids, col='red')
+
+
+bptest(projfit)
+coeftest(projfit, vcov = vcovHC(projfit))
+```
+*None of the results came back significant after the robust SEs (before, the South had a significant difference in GDP per capita). This means that region doesn't significantly effect GDP per capita, and that the interaction between region and percent high school education is also not significant for GDP per capita.*
+
+## Bootsrapped Regression
+
+```{r}
+projfit <- lm(gdppercap~region*perhsed_c, data = election_turnout)
+resids<-projfit$residuals
+fitted<-projfit$fitted.values
+
+resid_resamp<-replicate(5000,{
+new_resids<-sample(resids,replace=TRUE)
+newdat<-election_turnout
+newdat$new_y<-fitted+new_resids
+projfitbs<-lm(new_y ~ region*perhsed_c, data = newdat)
+coef(projfitbs)
+})
+
+resid_resamp%>%t%>%as.data.frame%>%summarize_all(sd)
+```
+*Compared to the original SEs, the bootstrapped SEs were lower (but not by a whole lot), meaning the p-values would also be lower, but probably not enough to make them significant. Compared to the robust SEs, all of the bootstrapped SEs except for the South and the South interaction were higher (again, not by a whole lot), meaning p-values would be a bit higher for all but the two mentioned.*
+
+## Logistic Regression
+
+```{r}
+projfit2 <- glm(trumpw~region + percoled,data=election_turnout,family=binomial(link="logit"))
+coeftest(projfit2)
+```
+*Controlling for percent college education, the Northeast and North Central regions are not significantly different.*
+*Controlling for percent college education, the South and North Central regions are not significantly different.*
+*Controlling for percent college education, the West and North Central regions are not significantly different.*
+```{r}
+exp(-0.57109)
+```
+*Controlling for region, for every 1% increase in college education, the odds of Trump winning change by a factor of 0.5649094.*
+
+
+```{r}
+probs<-predict(projfit2,type="response") 
+table(predict=as.numeric(probs>.5),truth=election_turnout$trumpw)%>%addmargins
+
+(17+27)/51 #accuracy
+27/30 #sensitivity
+17/21 #specificity
+27/31 #precision
+
+library(plotROC)
+ROCplot<-ggplot(election_turnout)+geom_roc(aes(d=trumpw,m=probs), n.cuts=0)+
+geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)
+calc_auc(ROCplot)
+```
+
+*The model was ~86% accurate (0.8627451). The sensitivity, which is the probability of predicting trump winning if he actually won, was 0.9. The specificity, which is the probability of predicting trump losing if he actually lost, was 0.8095238. The precision, which is the proportion of predicted trump wins that were actually true, was 0.8709677. The AUC was 0.9396825, meaning the model performed quite well.*
+
+```{r}
+logit<-predict(projfit2,type="link") 
+election_turnout %>% 
+  mutate(y=as.factor(trumpw)) %>% 
+  ggplot(aes(logit, fill=y)) + 
+  geom_density(alpha = 0.6, color = c("grey75")) +
+  labs(fill = "Trump Won State") +
+  scale_fill_manual(values = c("deepskyblue", "indianred1")) 
+
+ROCplot
+calc_auc(ROCplot)
+```
+*Again, the model performed really well, with an AUC of 0.9396825.*
+
+## Logistic Regression with More Variables
+
+```{r}
+election_turnout_orig<- election_turnout[ , 4:9] 
+projfit3 <- glm(trumpw~.,data=election_turnout_orig,family="binomial")
+coeftest(projfit3)
+
+prob <- predict(projfit3,type="response")
+
+class_diag<-function(prob,truth){
+  tab<-table(factor(prob>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  ord<-order(prob, decreasing=TRUE)
+  prob <- prob[ord]; truth <- truth[ord]
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  dup<-c(prob[-1]>=prob[-length(prob)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+  data.frame(acc,sens,spec,ppv,auc)
+}
+class_diag(prob,election_turnout_orig$trumpw)
+```
+*Using all the rest of the variables, the accuracy of the model is 0.8823529, the probability of Trump winning if he actually won is 0.9333333	(sensitivity), the probability of Trump losing if he actually lost is 0.8095238 (specificity), the proportion of predicted Trump wins that actually happened was 0.875 (PPV), and the AUC was 0.9238095, meaning the model performed really well.*
+
+```{r}
+set.seed(1234)
+k=10
+
+data<-election_turnout_orig[sample(nrow(election_turnout_orig)),] 
+folds<-cut(seq(1:nrow(data)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+train<-data[folds!=i,]
+test<-data[folds==i,]
+truth<-test$trumpw 
+projfit_k<-glm(trumpw~.,data=train,family="binomial")
+prob2<-predict(projfit_k,newdata = test,type="response")
+diags<-rbind(diags,class_diag(prob2,truth))
+}
+
+summarize_all(diags,mean) 
+```
+*This time, all of the classification diagnostics were lower than the original except for specificity, meaning the out-of-sample metrics weren't as good as the in-sample metrics.*
+
+
+```{r}
+library(glmnet)
+
+y <- as.matrix(election_turnout_orig$trumpw)
+x <- model.matrix(trumpw~ -1+., data=election_turnout_orig) 
+head(x); x<-scale(x) 
+cv <-cv.glmnet(x,y,family='binomial')
+lasso<-glmnet(x,y,family='binomial',lambda=cv$lambda.1se)
+coef(lasso)
+```
+*Only the Percent College Education variable was retained after the LASSO.*
+
+
+```{r}
+lasso_dat <- election_turnout_orig %>% 
+  select(percoled, trumpw)
+k=7
+data2<-lasso_dat[sample(nrow(lasso_dat)),] 
+folds<-cut(seq(1:nrow(data2)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+train<-data2[folds!=i,]
+test<-data2[folds==i,]
+truth2<-test$trumpw 
+projfit_k2<-glm(trumpw~.,data=train,family="binomial")
+prob3<-predict(projfit_k2,newdata = test,type="response")
+diags<-rbind(diags,class_diag(prob3,truth2))
+}
+
+summarize_all(diags,mean) 
+```
+*Using only the "percoled", the model had higher metrics except for PPV, and had a AUC of 0.952381, meaning overall it performed better than the logistic regression above.*
+
+
+...
+
+
+
+
+

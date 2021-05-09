@@ -1,0 +1,408 @@
+---
+title: 'Project 1: Exploratory Data Analysis'
+author: "SDS348 - Alec Ramba, adr3325"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+
+## Intro
+I chose to use the drinks dataset (from fivethirtyeight) and the countries_of_the_world dataset (from kaggle). Both have information about countries (both listed the country name as a variable), which made it easy to join, but the had very different statistics, which made it interesting. The drinks dataset had data about alcohol consumption in each country, while the countries_of_the_world dataset had more normal information (Population, GDP, Birthrate, Deathrate, etc.). I wondered if there would be any interesting correlation between these two sets, and I hypothesized that I would see higher drinking rates with higher population densities, and lower GDPs and Literacy rates.
+
+## Downloading and Tidying
+``` {r}
+library(tidyverse)
+library(readr)
+countries_of_the_world <- read_csv("countries of the world.csv", 
+    col_types = cols(`Coastline (coast/area ratio)` = col_skip(), 
+        `Net migration` = col_skip(), `Phones (per 1000)` = col_skip(), 
+        `Arable (%)` = col_skip(), `Crops (%)` = col_skip(), 
+        `Other (%)` = col_skip(), Climate = col_skip(), 
+        Agriculture = col_skip(), Industry = col_skip(), 
+        Service = col_skip()))
+library(fivethirtyeight)   
+library(kableExtra)
+
+drinks <- drinks %>% pivot_longer(cols = c(beer_servings:wine_servings), names_to = "Alcohol_Type", values_to = "Servings") %>% separate(Alcohol_Type, into = c("Alcohol_Type", "servingsname")) %>% select(-servingsname) 
+```
+In this step, I downloaded the two datests and tidyd the drinks dataset before joining it in the next step. I used pivot_longer to condense the 3 columns "beer_servings", "spirit_servings" and "wine_servings" (which each had numerical entries of servings per person for each country) into two columns, "Alcohol_Type" (categorical) and "Servings" (numeric).
+
+*Side Note: As you can see from the code when I downloaded the "countries_of_the_world" dataset, I dropped several variables. I did this to get rid of extraneous data that was unnecessary and that I didn't plan on using, just to clean up the dataset before I started the project. This data didn't pertain to any of the data that I kept, and thus couldn't have been tidyd into a more usable form.*
+
+## Joining
+```{r}
+countrydata <- countries_of_the_world %>%  inner_join(drinks, by = c("Country" = "country"))
+countrydata 
+
+countrydata %>%
+  head() %>% kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "responsive"))
+
+```
+Here, I joined the datasets to create "countrydata". The "countries_of_the_world" dataset had 10 variables (including country name) and 227 entries (meaning 227 countries listed). The "drinks" dataset had 4 variables (including country name) and 579 entries (meaning 193 countries listed). I joined the two datasets using an inner join, so that there would be full data (both about the country in general and about it's drinking data) for all the countries in the joined dataset. This joined dataset has 13 variables and 522 entries, meaning there were 174 matches in country names and 72 country names that didn't match/weren't in both datasets. 
+
+
+## Summary Statistics
+
+##### Population
+```{r}
+countrydata %>%
+  group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanPopulation = mean(Population, na.rm = T), 
+            TotalPopulation = sum(Population)) %>%
+  arrange(TotalPopulation) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*Here is a general look at the mean and total population for each region. (Table 1)*
+
+##### Area
+```{r}
+countrydata %>%
+  group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanArea = mean(`Area (sq. mi.)`, na.rm = T), 
+            TotalArea = sum(`Area (sq. mi.)`)) %>%
+  arrange(TotalArea) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*Here is a general look at the mean and total area (in square miles) for each region. (Table 2)*
+
+##### Population Density
+```{r}
+countrydata %>% group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanPopDensity = mean(`Pop. Density (per sq. mi.)`, na.rm = T), 
+            SD = sd(`Pop. Density (per sq. mi.)`, na.rm = T), 
+            Min. = min(`Pop. Density (per sq. mi.)`, na.rm = T),
+            Max. = max(`Pop. Density (per sq. mi.)`, na.rm = T),
+            '25%' = quantile(`Pop. Density (per sq. mi.)`, na.rm = T, probs = c(.25)),
+            '75%' = quantile(`Pop. Density (per sq. mi.)`, na.rm = T, probs = c(.75))) %>%
+  arrange(MeanPopDensity) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for population density in each region, as well as the number of countries contributing to each region. (Table 3)*
+
+```{r}
+countrydata  %>% distinct(Country, .keep_all = TRUE) %>%
+  select(Country, `Pop. Density (per sq. mi.)`, total_litres_of_pure_alcohol) %>% 
+  arrange(`Pop. Density (per sq. mi.)`) %>%
+  head(10) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+countrydata %>% distinct(Country, .keep_all = TRUE) %>% 
+  filter(Region == "WESTERN EUROPE") %>% 
+  select(Country, `Pop. Density (per sq. mi.)`, total_litres_of_pure_alcohol) %>%
+  arrange(`Pop. Density (per sq. mi.)`) %>%
+  head(10) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*These two tables (above) show population density and total alcohol consumption per person (in liters) side by side. The top table shows the data for all countries, while the bottom table shows the data only for countries in Western Europe (the region with the highest mean population density). (Tables 3a and 3b)*
+
+##### Infant Mortality
+```{r}
+countrydata %>% group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanInfantMortality = mean(`Infant mortality (per 1000 births)`, na.rm = T), 
+            SD = sd(`Infant mortality (per 1000 births)`, na.rm = T), 
+            Min. = min(`Infant mortality (per 1000 births)`, na.rm = T),
+            Max. = max(`Infant mortality (per 1000 births)`, na.rm = T),
+            '25%' = quantile(`Infant mortality (per 1000 births)`, na.rm = T, probs = c(.25)),
+            '75%' = quantile(`Infant mortality (per 1000 births)`, na.rm = T, probs = c(.75))) %>%
+  arrange(MeanInfantMortality) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for infant mortality in each region, as well as the number of countries contributing to each region. (Table 4)*
+
+
+##### GDP
+```{r}
+countrydata %>%
+  group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanGDP = mean(`GDP ($ per capita)`, na.rm = T), 
+            SD = sd(`GDP ($ per capita)`, na.rm = T), 
+            Min. = min(`GDP ($ per capita)`, na.rm = T),
+            Max. = max(`GDP ($ per capita)`, na.rm = T),
+            '25%' = quantile(`GDP ($ per capita)`, na.rm = T, probs = c(.25)),
+            '75%' = quantile(`GDP ($ per capita)`, na.rm = T, probs = c(.75))) %>%
+  arrange(MeanGDP) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for GDP in each region, as well as the number of countries contributing to each region. (Table 5)*
+
+```{r}
+countrydata %>% distinct(Country, .keep_all = TRUE) %>% 
+  select(Country, `GDP ($ per capita)`, total_litres_of_pure_alcohol) %>% 
+  arrange(`GDP ($ per capita)`) %>%
+  head(10) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+countrydata %>% distinct(Country, .keep_all = TRUE) %>% 
+  filter(Region == "SUB-SAHARAN AFRICA") %>% 
+  select(Country, `GDP ($ per capita)`, total_litres_of_pure_alcohol) %>% 
+  arrange(`GDP ($ per capita)`) %>%
+  head(10) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*These two tables (above) show GDP and total alcohol consumption per person (in liters) side by side. The top table shows the data for all countries, while the bottom table shows the data only for countries in Sub-Saharan Africa (the region with the lowest mean GDP). (Tables 5a and 5b)*
+
+##### Literacy
+```{r}
+countrydata %>%
+  group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanLiteracy = mean(`Literacy (%)`, na.rm = T), 
+            SD = sd(`Literacy (%)`, na.rm = T), 
+            Min. = min(`Literacy (%)`, na.rm = T),
+            Max. = max(`Literacy (%)`, na.rm = T),
+            '25%' = quantile(`Literacy (%)`, na.rm = T, probs = c(.25)),
+            '75%' = quantile(`Literacy (%)`, na.rm = T, probs = c(.75))) %>%
+  arrange(MeanLiteracy) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for literacy rates in each region, as well as the number of countries contributing to each region. (Table 6)*
+
+```{r}
+countrydata %>% distinct(Country, .keep_all = TRUE) %>% 
+  select(Country, `Literacy (%)`, total_litres_of_pure_alcohol) %>% 
+  arrange(`Literacy (%)`) %>%
+  head(10) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the literacy rate and total alcohol consumption per person (in liters) side by side. (Table 6a)*
+
+##### Birthrate
+```{r}
+countrydata %>%
+  group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanBirthrate = mean(Birthrate, na.rm = T), 
+            SD = sd(Birthrate, na.rm = T), 
+            Min. = min(Birthrate, na.rm = T),
+            Max. = max(Birthrate, na.rm = T),
+            '25%' = quantile(Birthrate, na.rm = T, probs = c(.25)),
+            '75%' = quantile(Birthrate, na.rm = T, probs = c(.75))) %>%
+  arrange(MeanBirthrate) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for birthrate in each region, as well as the number of countries contributing to each region. (Table 7)*
+
+##### Deathrate
+```{r}
+countrydata %>%
+  group_by(Region) %>%
+  summarise(n = n_distinct(Country), 
+            MeanDeathrate = mean(Deathrate, na.rm = T), 
+            SD = sd(Deathrate, na.rm = T), 
+            Min. = min(Deathrate, na.rm = T),
+            Max. = max(Deathrate, na.rm = T),
+            '25%' = quantile(Deathrate, na.rm = T, probs = c(.25)),
+            '75%' = quantile(Deathrate, na.rm = T, probs = c(.75))) %>%
+  arrange(MeanDeathrate) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for deathrate in each region, as well as the number of countries contributing to each region. (Table 8)*
+
+```{r}
+countrydata <- countrydata %>% 
+  mutate(Population_Growth = Birthrate-Deathrate) %>% 
+  select(1:Deathrate, Population_Growth, everything())
+
+countrydata %>% distinct(Country, .keep_all = TRUE) %>% 
+  select(Country, Birthrate, Deathrate, Population_Growth) %>%
+  head(10) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The above table shows the new variable, "Population_Growth", which subtracts the deathrate from the birthrate to determine whether the population is growing or diminishing and at what value. (Table 8a)*
+
+##### Beer Consumption
+```{r}
+countrydata %>% group_by(Region) %>% 
+  filter(Alcohol_Type == "beer") %>%
+  summarise(n = n(),
+            MeanBeerServings = mean(Servings), 
+            SD = sd(Servings),
+            Min. = min(Servings),
+            Max. = max(Servings),
+            '25%' = quantile(Servings, probs = c(.25)),
+            '75%' = quantile(Servings, probs = c(.75))) %>%
+  arrange(MeanBeerServings) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for beer consumption per person (in servings) in each region, as well as the number of countries contributing to each region. (Table 9)*
+
+##### Spirits Consumption
+```{r}
+countrydata %>% group_by(Region) %>% 
+  filter(Alcohol_Type == "spirit") %>%
+  summarise(n = n(), 
+            MeanSpiritsServings = mean(Servings),
+            SD = sd(Servings),
+            Min. = min(Servings),
+            Max. = max(Servings),
+            '25%' = quantile(Servings, probs = c(.25)),
+            '75%' = quantile(Servings, probs = c(.75))) %>%
+  arrange(MeanSpiritsServings) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for spirits consumption per person (in servings) in each region, as well as the number of countries contributing to each region. (Table 10)*
+
+##### Wine Consumption
+```{r}
+countrydata %>% group_by(Region) %>% 
+  filter(Alcohol_Type == "wine") %>%
+  summarise(n = n(), 
+            MeanWineServings = mean(Servings),
+            SD = sd(Servings),
+            Min. = min(Servings),
+            Max. = max(Servings),
+            '25%' = quantile(Servings, probs = c(.25)),
+            '75%' = quantile(Servings, probs = c(.75))) %>%
+  arrange(MeanWineServings) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for wine consumption per person (in servings) in each region, as well as the number of countries contributing to each region. (Table 11)*
+
+##### Total Alcohol Consumption
+```{r}
+countrydata %>% group_by(Region) %>% 
+  summarise(n = n_distinct(Country), 
+            MeanTotalAlcohol = mean(total_litres_of_pure_alcohol),
+            SD = sd(total_litres_of_pure_alcohol),
+            Min. = min(total_litres_of_pure_alcohol),
+            Max. = max(total_litres_of_pure_alcohol),
+            '25%' = quantile(total_litres_of_pure_alcohol, probs = c(.25)),
+            '75%' = quantile(total_litres_of_pure_alcohol, probs = c(.75))) %>%
+  arrange(MeanTotalAlcohol) %>%  
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+```
+*The table above shows the mean, standard deviation, minimum value, maximum value, and the 25% and 75% quantile values for total alcohol consumption per person (in liters) in each region, as well as the number of countries contributing to each region. (Table 12)*
+
+In making these tables, I wanted to get general information about population, area (in square miles), population density, infant mortality rate, GDP, literacy rate, birthrate, deathrate, beer consumption, spirits consumption, wine consumption, and total alcohol consumption in each of the 11 regions listed in the dataset. I found that Asia has the highest total population and total land mass, Western Europe has the highest mean population density and wine consumption per person, Northern America has the highest mean GDP (though there's only one country listed under that region), the Baltics have the highest mean literacy rate, beer consumption per person, spirits consumption per person, and total alcohol consumption per person, and Sub-Saharan Africa has the highest mean infant mortality rate, birthrate, and deathrate, as well as the lowest mean GDP and literacy rate. (Tables 1-12) 
+
+I was especially interested to see if high population density, low GDP, or low literacy rate had any noticeable correlation (able to clearly see without plotting the data), but I found that, at least at first glance, they didn't seem to be strongly correlated (by country or by region). (Tables 3a-b, 5a-b, and 6a) Lastly, I made a new variable called "Population_Growth" by subtracting deathrate from birthrate, which shows whether the population of each country was growing or shrinking, and at what rate. (Table 8a)
+
+
+## Visualizations 
+
+#### Correlation Heatmap    
+```{r}
+correlationmatrix <- countrydata %>% select_if(is.numeric) %>% cor(use="pair")
+tidycorrelation <- correlationmatrix %>% as.data.frame %>% rownames_to_column("Variable1") %>%
+pivot_longer(-1,names_to = "Variable2",values_to = "Correlation")
+tidycorrelation %>% head(12) %>%
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+
+tidycorrelation %>% 
+  ggplot(aes(Variable1, Variable2, fill = Correlation)) +
+  geom_tile() + 
+  theme_dark() +
+  geom_text(aes(label = round(Correlation, 1))) +
+  labs(x = NULL, y = NULL, title = "Correlations in Country Data") +
+  scale_fill_gradient2(low = "#0C6291", mid = "#FBFEF9", high = "#A63446", limits=c(-1,1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.title = element_text(face = "bold.italic")) 
+  
+```
+
+This correlation heatmap shows that there is not a lot of significant correlation between many of the variables. Some of the most correlated were Birthrate, Literacy, and Infant Mortality (each had a net 0.8 correlation). This shows that as Literacy increased, Birthrate and Infant Mortality decreased. Two other fairly correlated variables were Servings and Total Liters of Alcohol (0.7 correlation). This shows that as the amount of servings per person went up, the amount of total alcohol consumption per person went up, which makes a lot of logical sense (though it's not an incredibly shocking or interesting correlation). Area and population seemed to be the least correlated with all the other variables, except each other, and even then the correlation score was only 0.5.
+   
+
+#### Interactions Between Literacy Rate, Birthrate, Infant Mortality, and GDP
+``` {r}
+countrydata %>% 
+  ggplot(aes(x = Birthrate, y = `Literacy (%)`)) +
+  geom_point(aes(color = `Infant mortality (per 1000 births)`, size = `GDP ($ per capita)`)) +
+  scale_color_gradient(low = "purple4", high = "thistle2") +
+  labs(title = "Interactions Between Literacy Rate, Birthrate, Infant Mortality, and GDP") +
+  theme(plot.title = element_text(face = "bold.italic", size = 10)) + 
+  scale_x_continuous(limits = c(5,55), n.breaks = 10)
+
+```
+Going of of what I found in the heatmap, I wanted a better visualization of the ways that Literacy, Birthrate, and Infant Mortality were related, and decided to include GDP in this visualization as well. As the plot shows, Literacy and Birthrate have a pretty clear negative correlation. Literacy and Infant Mortality also tend to have a negative correlation, since the upper left of the plot is mostly dark dots and the lower right of the plot is lighter dots (generally). This plot also shows that GDP and Literacy are somewhat correlated, since the dots in the upper left are generally larger than the dots in the bottom right (this means there is a positive correlation between the two, though not as strong as there is between the other three variables). GDP also relates to Birthrate and Infant Mortality, both with negative correlations.
+
+#### Servings of Beer, Spirits, and Wine by Region
+```{r}
+countrydata %>% ggplot(aes(x = Alcohol_Type, y = Servings, fill = Region)) +
+  geom_bar(stat = "summary", fun = mean) + 
+  scale_fill_manual(values = c("mediumorchid3", "plum2", "palevioletred2", "salmon2", "orangered3", "chocolate3", "gold1", "forestgreen", "aquamarine2", "turquoise3", "dodgerblue1")) +
+  labs(x = "Alcohol Type", title = "Servings of Beer, Spirits, and Wine by Region") + 
+  theme(plot.title = element_text(face = "bold.italic", size = 10))
+  
+```
+This graph shows a variety of interesting data on alcohol as it relates to region. Above, you can see that, in terms of servings, beer is has the highest consumption when all region are added, and wine the lowest. You can also see that the Baltics have the highest mean beer and spirit consumption rates, while Western Europe has the highest mean wine consumption rates. You can also see that some of the smallest consumers of alcohol across the board are Asia/Near East and Africa (grouped regions), while some of the largest consumers of alcohol are Europe and the Americas (grouped regions).
+
+    
+## k-means clustering 
+
+```{r}
+library(cluster)
+
+cluster_country_data<- countrydata %>% 
+  filter(!is.na(Population_Growth)) %>%
+  select(Servings, total_litres_of_pure_alcohol, Population_Growth)
+```
+*In this first step, I processed the data, removing the NA values that were present in the population growth variable set, and created a new dataset called cluster_country_data to use from here on out.*
+
+```{r}
+sil_width<-vector() 
+for(i in 2:10){  
+  kms <- kmeans(cluster_country_data,centers=i) 
+  sil <- silhouette(kms$cluster,dist(cluster_country_data)) 
+  sil_width[i]<-mean(sil[,3]) 
+}
+ggplot()+geom_line(aes(x=1:10,y=sil_width))+scale_x_continuous(name="k",breaks=1:10)
+```
+*I then determined the amount of clusters I was going to use by computing the silhouette width with kmeans and plotting it. This showed that 2 clusters was the ideal amount.*
+
+```{r}
+kmeanscountry <- cluster_country_data %>% scale() %>% kmeans(2)
+
+kmeansclustcountry <- cluster_country_data %>% as.data.frame %>% mutate(cluster = as.factor(kmeanscountry$cluster))
+kmeansclustcountry %>% head()
+
+library(GGally)
+ggpairs(kmeansclustcountry, columns = 1:3, aes(color = cluster)) 
+
+```
+*Then, I scaled the dataset with the ideal amount of clusters. Lastly, I saved the cluster assignment, and visualized the final cluster assignment using ggpairs, which shows how the 3 variables (Servings, Total Alcohol Consumption, and Population Growth relate to each other in the two clusters.*
+
+This joint table shows the cluster data in regards to the Servings, Total Liters of Alcohol, and Population Growth. Cluster 1 (red) is low in servings and total liters of alcohol, and high in population growth. Cluster 2 (blue) is very widely spread in servings, medium-high in total liters of alcohol, and low in population growth. This joint chart also shows that Servings and Total Alcohol have a fairly strong positive correlation, Servings and Population Growth have a medium negative correlation, and Population Growth and Total Alcohol have a somewhat strong negative correlation.
+
+Based on the graph used to determine the ideal amount of clusters, the average silhouette width is around .7. This means that there is a reasonable goodness of fit in the data (not exactly ideal, but essentially good enough).
+
+<P style="page-break-before: always">
+\newpage

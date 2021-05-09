@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Alec Rambar</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on Alec Rambar</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Project 1: Exploratory Data Analysis</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Intro I chose to use the drinks dataset (from fivethirtyeight) and the countries_of_the_world dataset (from kaggle). Both have information about countries (both listed the country name as a variable), which made it easy to join, but the had very different statistics, which made it interesting. The drinks dataset had data about alcohol consumption in each country, while the countries_of_the_world dataset had more normal information (Population, GDP, Birthrate, Deathrate, etc.</description>
+    </item>
+    
+    <item>
+      <title>Project 2: Modeling, Testing, and Predicting</title>
+      <link>/project/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>Data library(readr) library(kableExtra) election_turnout &amp;lt;- read_csv(&amp;quot;election_turnout.csv&amp;quot;, col_types = cols(X1 = col_skip(), year = col_skip())) election_turnout %&amp;gt;% head() %&amp;gt;% kbl() %&amp;gt;% kable_styling(bootstrap_options = c(&amp;quot;striped&amp;quot;, &amp;quot;hover&amp;quot;, &amp;quot;responsive&amp;quot;))   state  region  division  turnoutho  perhsed  percoled  gdppercap  ss  trumpw      Alabama  South  East South Central  59.0  84.3  23.5  42663  0  1    Alaska  West  Pacific  61.</description>
+    </item>
+    
+  </channel>
+</rss>
